@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "270447965155",
+    "project_id": "safe-map-a3250",
+    "storage_bucket": "safe-map-a3250.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:270447965155:android:dd1845f350b154a518a6d6",
+        "android_client_info": {
+          "package_name": "com.example.safemap"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDk8-mLwQXA8ZzrKbeoGB4b9-Lrs8KT-C8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -21,4 +21,3 @@ dependencyResolutionManagement {
 
 rootProject.name = "Safe Map"
 include(":app")
- 
