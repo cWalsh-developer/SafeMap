@@ -5,25 +5,32 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.view.WindowCompat
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.example.safemap.screen.LoginScreen
+import com.example.safemap.screen.Screen
+import com.example.safemap.screen.SignUpScreen
 import com.example.safemap.ui.theme.SafeMapTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         enableEdgeToEdge()
         setContent {
+            val navController = rememberNavController()
             SafeMapTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                Surface(modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background)
+                {
+                    NavigationManager(navController)
                 }
             }
         }
@@ -31,17 +38,18 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+fun NavigationManager(navController: NavHostController) {
+    NavHost(navController, startDestination = Screen.LoginScreen.route)
+    {
+        composable(Screen.SignUpScreen.route)
+        {
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    SafeMapTheme {
-        Greeting("Android")
+            SignUpScreen(onNavigateToSignIn = { navController.navigate(Screen.LoginScreen.route) })
+        }
+        composable(Screen.LoginScreen.route)
+        {
+            LoginScreen(onNavigateToSignUp = { navController.navigate(Screen.SignUpScreen.route) })
+        }
+
     }
 }
