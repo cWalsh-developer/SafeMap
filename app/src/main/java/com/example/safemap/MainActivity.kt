@@ -10,6 +10,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -18,6 +19,7 @@ import com.example.safemap.screen.LoginScreen
 import com.example.safemap.screen.Screen
 import com.example.safemap.screen.SignUpScreen
 import com.example.safemap.ui.theme.SafeMapTheme
+import com.example.safemap.viewmodel.AuthoriseViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,11 +28,12 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val navController = rememberNavController()
-            SafeMapTheme {
+            val authoriseViewModel: AuthoriseViewModel = viewModel()
+                SafeMapTheme {
                 Surface(modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background)
                 {
-                    NavigationManager(navController)
+                    NavigationManager(navController, authoriseViewModel)
                 }
             }
         }
@@ -38,17 +41,21 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun NavigationManager(navController: NavHostController) {
-    NavHost(navController, startDestination = Screen.LoginScreen.route)
+fun NavigationManager(navController: NavHostController, authoriseViewModel: AuthoriseViewModel) {
+    NavHost(
+        navController, startDestination = Screen.LoginScreen.route
+    )
     {
         composable(Screen.SignUpScreen.route)
         {
 
-            SignUpScreen(onNavigateToSignIn = { navController.navigate(Screen.LoginScreen.route) })
+            SignUpScreen(authoriseViewModel = authoriseViewModel,onNavigateToSignIn = { navController.navigate(Screen.LoginScreen.route) })
         }
         composable(Screen.LoginScreen.route)
         {
-            LoginScreen(onNavigateToSignUp = { navController.navigate(Screen.SignUpScreen.route) })
+            LoginScreen(authoriseViewModel = authoriseViewModel,
+                onSignInSuccess = { navController.navigate(Screen.SignUpScreen.route) },
+                onNavigateToSignUp = { navController.navigate(Screen.SignUpScreen.route) })
         }
 
     }

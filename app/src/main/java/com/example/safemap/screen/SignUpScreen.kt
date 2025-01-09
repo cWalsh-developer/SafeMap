@@ -30,11 +30,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import com.example.safemap.viewmodel.AuthoriseViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
     @Composable
     fun SignUpScreen(
-        onNavigateToSignIn: () -> Unit,
+    authoriseViewModel: AuthoriseViewModel,
+    onNavigateToSignIn: () -> Unit,
     )
     {
 
@@ -99,11 +101,12 @@ import androidx.compose.ui.unit.dp
                     disabledContentColor = Color.LightGray
                 ),
                 onClick = {
-//add the signup function
+                    authoriseViewModel.signUp(email, password, firstName, lastName)
                     email = ""
                     password = ""
                     firstName = ""
                     lastName = ""
+                    onNavigateToSignIn()
                 },
                 modifier = Modifier
                     .fillMaxWidth()
