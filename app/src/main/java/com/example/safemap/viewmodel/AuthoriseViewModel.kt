@@ -4,19 +4,17 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.safemap.data.Injection
+import com.example.safemap.data.Connection
 import com.example.safemap.data.Result
+import com.example.safemap.data.Result.Error
+import com.example.safemap.data.Result.Success
 import com.example.safemap.data.UserRepository
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
 class AuthoriseViewModel : ViewModel() {
-    private val userRepository:UserRepository
-
-    init {
-    userRepository = UserRepository(FirebaseAuth.getInstance(),
-        Injection.provideFirestore())
-    }
+    private val userRepository:UserRepository = UserRepository(FirebaseAuth.getInstance(),
+        Connection.provideFirestore())
 
     private val _authorisationResultHolder = MutableLiveData<Result<Boolean>>()
     val authorisationResult: LiveData<Result<Boolean>>  get() = _authorisationResultHolder
@@ -28,10 +26,32 @@ class AuthoriseViewModel : ViewModel() {
     }
 
     fun signIn(email: String, password: String) {
+            _authorisationResultHolder.value = Result.Loading
         viewModelScope.launch {
-            _authorisationResultHolder.value = userRepository.signIn(email, password)
+            try {
+                val result = userRepository.signIn(email, password)
+                _authorisationResultHolder.postValue(result)
+            }
+            catch(e: Exception)
+            {
+                _authorisationResultHolder.postValue(Error(e))
+            }
         }
 
+    }
+    fun checkStatus(): Result<Boolean> =
+        if(FirebaseAuth.getInstance().currentUser != null)
+        {
+            Success(true)
+        }else
+        {
+            Error(Exception("User not logged in"))
+        }
+
+    fun signOut(result: Result.LoggedOut)
+    {
+        FirebaseAuth.getInstance().signOut()
+        _authorisationResultHolder.value = result
     }
 
 

@@ -1,6 +1,7 @@
 package com.example.safemap.screen
 
 
+
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,9 +14,12 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -31,6 +35,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.safemap.viewmodel.AuthoriseViewModel
+import com.example.safemap.data.Result
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
     @Composable
@@ -39,7 +44,8 @@ import com.example.safemap.viewmodel.AuthoriseViewModel
     onNavigateToSignIn: () -> Unit,
     )
     {
-
+        var isError by remember { mutableStateOf(false) }
+        var error by remember { mutableStateOf("") }
         var email by remember { mutableStateOf("") }
         var password by remember { mutableStateOf("") }
         var firstName by remember { mutableStateOf("") }
@@ -57,7 +63,8 @@ import com.example.safemap.viewmodel.AuthoriseViewModel
                 color = Color(0xff26662a),
                 style = MaterialTheme.typography.headlineLarge)
             OutlinedTextField(
-                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xff26662a), focusedLabelColor = Color(0xff26662a)),
+                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xff26662a),
+                    focusedLabelColor = Color(0xff26662a), cursorColor = Color(0xff26662a)),
                 value = email,
                 onValueChange = { email = it },
                 label = { Text("Email") },
@@ -66,9 +73,12 @@ import com.example.safemap.viewmodel.AuthoriseViewModel
                     .padding(8.dp)
             )
             OutlinedTextField(
-                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xff26662a), focusedLabelColor = Color(0xff26662a)),
+                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xff26662a),
+                    focusedLabelColor = Color(0xff26662a), cursorColor = Color(0xff26662a)),
                 value = password,
                 onValueChange = { password = it },
+                supportingText = {Text(error, color = Color.Red)},
+                trailingIcon = {if(isError) Icon(Icons.Filled.Info, "error", tint = Color.Red) },
                 label = { Text("Password") },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -76,7 +86,8 @@ import com.example.safemap.viewmodel.AuthoriseViewModel
                 visualTransformation = PasswordVisualTransformation()
             )
             OutlinedTextField(
-                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xff26662a), focusedLabelColor = Color(0xff26662a)),
+                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xff26662a),
+                    focusedLabelColor = Color(0xff26662a), cursorColor = Color(0xff26662a)),
                 value = firstName,
                 onValueChange = { firstName = it },
                 label = { Text("First Name") },
@@ -85,7 +96,8 @@ import com.example.safemap.viewmodel.AuthoriseViewModel
                     .padding(8.dp)
             )
             OutlinedTextField(
-                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xff26662a), focusedLabelColor = Color(0xff26662a)),
+                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xff26662a),
+                    focusedLabelColor = Color(0xff26662a), cursorColor = Color(0xff26662a)),
                 value = lastName,
                 onValueChange = { lastName = it },
                 label = { Text("Last Name") },
@@ -101,12 +113,18 @@ import com.example.safemap.viewmodel.AuthoriseViewModel
                     disabledContentColor = Color.LightGray
                 ),
                 onClick = {
-                    authoriseViewModel.signUp(email, password, firstName, lastName)
-                    email = ""
-                    password = ""
-                    firstName = ""
-                    lastName = ""
-                    onNavigateToSignIn()
+                    if(password.length < 6){
+                        error = "Password must be at least 6 characters long"
+                        isError = true
+                    }
+                    else
+                    {
+                        authoriseViewModel.signUp(email, password, firstName, lastName)
+                        email = ""
+                        password = ""
+                        firstName = ""
+                        lastName = ""
+                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -116,8 +134,9 @@ import com.example.safemap.viewmodel.AuthoriseViewModel
             }
             Spacer(modifier = Modifier.height(16.dp))
             Text("Already have an account? Sign in.",
-                modifier = Modifier.imePadding().clickable {onNavigateToSignIn()
-                     }
-                    )
-                }
+                modifier = Modifier.imePadding().clickable {
+                    authoriseViewModel.signOut(Result.LoggedOut)
+                    onNavigateToSignIn()
+                })
         }
+    }

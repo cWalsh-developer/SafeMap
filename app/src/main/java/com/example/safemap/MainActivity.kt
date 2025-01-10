@@ -20,6 +20,7 @@ import com.example.safemap.screen.Screen
 import com.example.safemap.screen.SignUpScreen
 import com.example.safemap.ui.theme.SafeMapTheme
 import com.example.safemap.viewmodel.AuthoriseViewModel
+import com.example.safemap.data.Result
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,13 +44,22 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun NavigationManager(navController: NavHostController, authoriseViewModel: AuthoriseViewModel) {
     NavHost(
-        navController, startDestination = Screen.LoginScreen.route
+        navController, startDestination =
+            if(AuthoriseViewModel().checkStatus() == Result.Success(true))
+            {
+                Screen.SignUpScreen.route
+            }
+            else
+            {
+                Screen.LoginScreen.route
+            }
     )
     {
         composable(Screen.SignUpScreen.route)
         {
 
-            SignUpScreen(authoriseViewModel = authoriseViewModel,onNavigateToSignIn = { navController.navigate(Screen.LoginScreen.route) })
+            SignUpScreen(authoriseViewModel = authoriseViewModel,onNavigateToSignIn = {
+                navController.navigate(Screen.LoginScreen.route) })
         }
         composable(Screen.LoginScreen.route)
         {

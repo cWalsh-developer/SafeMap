@@ -2,7 +2,7 @@ package com.example.safemap.data
 
 import com.google.firebase.firestore.FirebaseFirestore
 
-object Injection
+object Connection
 {
     private val instance: FirebaseFirestore by lazy {
         FirebaseFirestore.getInstance()

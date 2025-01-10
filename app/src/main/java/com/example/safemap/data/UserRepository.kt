@@ -1,13 +1,12 @@
 package com.example.safemap.data
 
-import com.google.firebase.Firebase
+import com.example.safemap.data.Result.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.tasks.await
 
 class UserRepository(private val auth: FirebaseAuth,
-    private val firestore : FirebaseFirestore
+    private val firestore: FirebaseFirestore
 ) {
     suspend fun signUp(email: String, password: String, firstName: String, lastName: String): Result<Boolean> =
         try
@@ -15,22 +14,23 @@ class UserRepository(private val auth: FirebaseAuth,
             auth.createUserWithEmailAndPassword(email, password).await()
             val user = User(firstName, lastName, email)
             saveUserToFirestore(user)
-            Result.Success(true)
+            Success(true)
         }catch (e: Exception)
         {
-            Result.Error(e)
+            Error(e)
         }
 
     suspend fun signIn(email: String, password: String): Result<Boolean> =
         try
         {
             auth.signInWithEmailAndPassword(email, password).await()
-            Result.Success(true)
+            Success(true)
         }catch (e: Exception)
         {
-            Result.Error(e)
+            Error(e)
         }
-}
-private suspend fun saveUserToFirestore(user: User) {
-    Firebase.firestore.collection("users").document(user.email).set(user).await()
+    private suspend fun saveUserToFirestore(user: User)
+    {
+        firestore.collection("users").document(auth.currentUser!!.uid).set(user).await()
+    }
 }

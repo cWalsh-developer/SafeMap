@@ -1,5 +1,6 @@
 package com.example.safemap.screen
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -14,6 +15,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -31,8 +33,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import com.example.safemap.viewmodel.AuthoriseViewModel
 import com.example.safemap.data.Result
+import com.example.safemap.viewmodel.AuthoriseViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,27 +43,35 @@ fun LoginScreen(
     onSignInSuccess: () -> Unit,
     onNavigateToSignUp: () -> Unit,
 ) {
+    var textPressAction by remember { mutableStateOf(false) }
     val context = LocalContext.current
-    val result by authoriseViewModel.authorisationResult.observeAsState()
     var email by remember { mutableStateOf("") }
+    val result by authoriseViewModel.authorisationResult.observeAsState()
+    Log.d("TAG", "LoginScreen: ${result}")
     var password by remember {
         mutableStateOf("")
     }
 
     Column(
         modifier = Modifier
-            .fillMaxSize().verticalScroll(rememberScrollState())
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(16.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
-    ){
-        Text(text = "Login",
+    ) {
+        Text(
+            text = "Login",
             modifier = Modifier.padding(bottom = 16.dp),
             color = Color(0xff26662a),
-            style = MaterialTheme.typography.headlineLarge)
+            style = MaterialTheme.typography.headlineLarge
+        )
 
         OutlinedTextField(
-            colors = TextFieldDefaults.outlinedTextFieldColors(focusedBorderColor = Color(0xff26662a), focusedLabelColor = Color(0xff26662a)),
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                focusedBorderColor = Color(0xff26662a),
+                focusedLabelColor = Color(0xff26662a)
+            ),
             value = email,
             onValueChange = { email = it },
             label = { Text("Email") },
@@ -70,7 +80,10 @@ fun LoginScreen(
                 .padding(8.dp)
         )
         OutlinedTextField(
-            colors = TextFieldDefaults.outlinedTextFieldColors(focusedBorderColor = Color(0xff26662a), focusedLabelColor = Color(0xff26662a)),
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                focusedBorderColor = Color(0xff26662a),
+                focusedLabelColor = Color(0xff26662a)
+            ),
             value = password,
             onValueChange = { password = it },
             label = { Text("Password") },
@@ -80,25 +93,13 @@ fun LoginScreen(
             visualTransformation = PasswordVisualTransformation()
         )
         Button(
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xff26662a), contentColor = Color.White),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xff26662a),
+                contentColor = Color.White
+            ),
             onClick = {
                 authoriseViewModel.signIn(email, password)
-                when (result)
-                {
-                    is Result.Success ->
-                        {
-                            onNavigateToSignUp()
-                        }
-                    is Result.Error ->
-                        {
-                            Toast.makeText(context, "Login failed", Toast.LENGTH_SHORT).show()
-                        }
-
-                    null->{
-                        Toast.makeText(context, "No Data Found", Toast.LENGTH_SHORT).show()
-                    }
-                }
-
+                textPressAction = true
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -108,7 +109,29 @@ fun LoginScreen(
         }
         Spacer(modifier = Modifier.height(16.dp))
         Text("Don't have an account? Sign up.",
-            modifier = Modifier.imePadding().clickable { onNavigateToSignUp() }
+            modifier = Modifier
+                .imePadding()
+                .clickable { onNavigateToSignUp() }
         )
+    }
+    when (result) {
+        is Result.Success -> {
+            onNavigateToSignUp()
+        }
+
+        is Result.Error -> {
+            Toast.makeText(context, "Login failed", Toast.LENGTH_SHORT).show()
+        }
+
+        is Result.Loading -> {
+            CircularProgressIndicator(color = Color(0xff26662a))
+        }
+        is Result.LoggedOut -> {
+        }
+        null -> {
+            if (textPressAction) {
+                Toast.makeText(context, "No Data Found", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 }
