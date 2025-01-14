@@ -44,12 +44,23 @@ import com.example.safemap.data.Result
     onNavigateToSignIn: () -> Unit,
     )
     {
+        //(User)State variables
         var isError by remember { mutableStateOf(false) }
         var error by remember { mutableStateOf("") }
         var email by remember { mutableStateOf("") }
         var password by remember { mutableStateOf("") }
         var firstName by remember { mutableStateOf("") }
         var lastName by remember { mutableStateOf("") }
+        var telephone by remember { mutableStateOf("") }
+
+        //(Address)State variables
+        var addressLine1 by remember { mutableStateOf("") }
+        var addressLine2 by remember { mutableStateOf("") }
+        var townCity by remember { mutableStateOf("") }
+        var county by remember { mutableStateOf("") }
+        var country by remember { mutableStateOf("") }
+        var postcode by remember { mutableStateOf("") }
+
 
         Column(
             modifier = Modifier
@@ -105,6 +116,76 @@ import com.example.safemap.data.Result
                     .fillMaxWidth()
                     .padding(8.dp)
             )
+            OutlinedTextField(
+                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xff26662a),
+                    focusedLabelColor = Color(0xff26662a), cursorColor = Color(0xff26662a)),
+                value = telephone,
+                onValueChange = { telephone = it },
+                label = { Text("Mobile Number") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+            )
+            OutlinedTextField(
+                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xff26662a),
+                    focusedLabelColor = Color(0xff26662a), cursorColor = Color(0xff26662a)),
+                value = addressLine1,
+                onValueChange = { addressLine1 = it },
+                label = { Text("Address Line One") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+            )
+            OutlinedTextField(
+                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xff26662a),
+                    focusedLabelColor = Color(0xff26662a), cursorColor = Color(0xff26662a)),
+                value = addressLine2,
+                onValueChange = { addressLine2 = it },
+                label = { Text("Address Line Two") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+            )
+            OutlinedTextField(
+                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xff26662a),
+                    focusedLabelColor = Color(0xff26662a), cursorColor = Color(0xff26662a)),
+                value = townCity,
+                onValueChange = { townCity= it },
+                label = { Text("Town/City") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+            )
+            OutlinedTextField(
+                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xff26662a),
+                    focusedLabelColor = Color(0xff26662a), cursorColor = Color(0xff26662a)),
+                value = county,
+                onValueChange = { county = it },
+                label = { Text("county") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+            )
+            OutlinedTextField(
+                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xff26662a),
+                    focusedLabelColor = Color(0xff26662a), cursorColor = Color(0xff26662a)),
+                value = country,
+                onValueChange = { country = it },
+                label = { Text("country") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+            )
+            OutlinedTextField(
+                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xff26662a),
+                    focusedLabelColor = Color(0xff26662a), cursorColor = Color(0xff26662a)),
+                value = postcode,
+                onValueChange = { postcode = it },
+                label = { Text("Postcode/Zip") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+            )
             Button(
                 colors = ButtonColors(
                     containerColor = Color(0xff26662a),
@@ -119,11 +200,13 @@ import com.example.safemap.data.Result
                     }
                     else
                     {
-                        authoriseViewModel.signUp(email, password, firstName, lastName)
+                        authoriseViewModel.signUp(email, password, firstName, lastName, telephone,
+                            addressLine1, addressLine2, townCity, county, country, postcode)
                         email = ""
                         password = ""
                         firstName = ""
                         lastName = ""
+                        telephone = ""
                     }
                 },
                 modifier = Modifier

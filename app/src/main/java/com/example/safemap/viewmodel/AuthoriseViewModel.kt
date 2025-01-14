@@ -19,9 +19,11 @@ class AuthoriseViewModel : ViewModel() {
     private val _authorisationResultHolder = MutableLiveData<Result<Boolean>>()
     val authorisationResult: LiveData<Result<Boolean>>  get() = _authorisationResultHolder
 
-    fun signUp(email: String, password: String, firstName: String, lastName: String) {
+    fun signUp(email: String, password: String, firstName: String, lastName: String, telephone: String,
+               addressLine1: String, addressLine2: String, townCity: String, county: String, country: String, postcode: String) {
         viewModelScope.launch {
-            _authorisationResultHolder.value = userRepository.signUp(email, password, firstName, lastName)
+            _authorisationResultHolder.value = userRepository.signUp(email, password, firstName, lastName, telephone,
+                addressLine1, addressLine2, townCity, county, country, postcode)
         }
     }
 

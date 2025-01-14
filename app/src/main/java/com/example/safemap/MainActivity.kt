@@ -47,7 +47,7 @@ fun NavigationManager(navController: NavHostController, authoriseViewModel: Auth
         navController, startDestination =
             if(AuthoriseViewModel().checkStatus() == Result.Success(true))
             {
-                Screen.SignUpScreen.route
+                Screen.MapScreen.route
             }
             else
             {
