@@ -1,7 +1,8 @@
-package com.example.safemap.screen
+package com.example.safemap.View
 
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -50,6 +51,10 @@ fun LoginScreen(
     Log.d("TAG", "LoginScreen: ${result}")
     var password by remember {
         mutableStateOf("")
+    }
+
+    BackHandler {
+        //Do Nothing
     }
 
     Column(
@@ -116,7 +121,7 @@ fun LoginScreen(
     }
     when (result) {
         is Result.Success -> {
-            onNavigateToSignUp()
+            onSignInSuccess()
         }
 
         is Result.Error -> {

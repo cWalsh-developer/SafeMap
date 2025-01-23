@@ -1,4 +1,4 @@
-package com.example.safemap.screen
+package com.example.safemap.View
 
 
 

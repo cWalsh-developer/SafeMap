@@ -9,7 +9,8 @@ class UserRepository(private val auth: FirebaseAuth,
     private val firestore: FirebaseFirestore
 ) {
     suspend fun signUp(email: String, password: String, firstName: String, lastName: String, telephone: String,
-                       addressLine1: String, addressLine2: String, townCity: String, county: String, country: String, postcode: String): Result<Boolean> =
+                       addressLine1: String, addressLine2: String,
+                       townCity: String, county: String, country: String, postcode: String): Result<Boolean> =
         try
         {
             auth.createUserWithEmailAndPassword(email, password).await()

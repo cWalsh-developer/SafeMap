@@ -15,9 +15,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.safemap.screen.LoginScreen
-import com.example.safemap.screen.Screen
-import com.example.safemap.screen.SignUpScreen
+import com.example.safemap.View.LoginScreen
+import com.example.safemap.View.Screen
+import com.example.safemap.View.SignUpScreen
 import com.example.safemap.ui.theme.SafeMapTheme
 import com.example.safemap.viewmodel.AuthoriseViewModel
 import com.example.safemap.data.Result
@@ -64,9 +64,17 @@ fun NavigationManager(navController: NavHostController, authoriseViewModel: Auth
         composable(Screen.LoginScreen.route)
         {
             LoginScreen(authoriseViewModel = authoriseViewModel,
-                onSignInSuccess = { navController.navigate(Screen.SignUpScreen.route) },
+                onSignInSuccess = { navController.navigate(Screen.MapScreen.route) },
                 onNavigateToSignUp = { navController.navigate(Screen.SignUpScreen.route) })
         }
+        composable(Screen.MapScreen.route)
+        {
+            MapScreen(
+                authoriseViewModel = authoriseViewModel,
+                onNavigateToSignIn = { navController.navigate(Screen.LoginScreen.route) }
+            )
+        }
+
 
     }
 }
