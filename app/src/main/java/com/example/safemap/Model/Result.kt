@@ -1,4 +1,4 @@
-package com.example.safemap.data
+package com.example.safemap.Model
 
 sealed class Result<out T> {
     data class Success<out T>(val data: T) : Result<T>()

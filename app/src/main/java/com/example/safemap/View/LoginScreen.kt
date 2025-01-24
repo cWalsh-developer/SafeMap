@@ -34,7 +34,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import com.example.safemap.data.Result
+import com.example.safemap.Model.Result
 import com.example.safemap.viewmodel.AuthoriseViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)

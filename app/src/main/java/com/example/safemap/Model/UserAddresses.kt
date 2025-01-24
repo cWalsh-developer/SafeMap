@@ -1,4 +1,4 @@
-package com.example.safemap.data
+package com.example.safemap.Model
 
 data class UserAddresses(
     val addressLine1: String = "",

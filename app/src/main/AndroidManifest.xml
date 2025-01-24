@@ -12,6 +12,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SafeMap"
         tools:targetApi="31">
+
+        <meta-data
+            android:name ="com.google.android.geo.API_KEY"
+            android:value="AIzaSyBMyekmY-6iLNyR-J2knlhhRwIQ0HT8o4I"
+            />
         <activity
             android:name=".MainActivity"
             android:windowSoftInputMode = "adjustResize"

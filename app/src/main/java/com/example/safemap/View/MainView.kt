@@ -1,13 +1,16 @@
 package com.example.safemap.View
 
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -34,30 +37,45 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.NavHost
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.safemap.viewmodel.AuthoriseViewModel
 import kotlinx.coroutines.CoroutineScope
-import com.example.safemap.data.Result
+import com.example.safemap.Model.Result
+import com.example.safemap.viewmodel.MainViewModel
 import kotlinx.coroutines.launch
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MapScreen(
+fun MainView(
     authoriseViewModel: AuthoriseViewModel,
     onNavigateToSignIn: () -> Unit,
 )
 {
     val scaffoldState: ScaffoldState = rememberScaffoldState()
     val scope: CoroutineScope = rememberCoroutineScope()
+    val viewModel: MainViewModel = viewModel()
 
     //Provides the current view of the screen
     val navController: NavHostController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    val title = remember{ mutableStateOf("") }
+    val currentScreen = remember{
+        viewModel.currentScreen.value
+    }
+
+//    val title = remember{ mutableStateOf(currentScreen) }
+
+    val systemUIController = rememberSystemUiController()
+    systemUIController.setStatusBarColor(Color.Transparent)
 
     BackHandler {
         //Do Nothing
@@ -66,6 +84,7 @@ fun MapScreen(
         topBar =
         {
             TopAppBar(
+                modifier = Modifier.height(70.dp),
                 title = {
 
                 },
@@ -96,8 +115,7 @@ fun MapScreen(
                                 scope.launch {
                                     scaffoldState.drawerState.close()
                                 }
-        //                    navController.navigate(item.route)
-        //                    title.value = item.title
+                            navController.navigate(item.route)
                         }
                         }
                     }
@@ -119,7 +137,7 @@ fun MapScreen(
         }
     )
     {
-        Text(text = "Map Screen", modifier = Modifier.padding(it))
+        Navigation(navController = navController, viewmodel = viewModel, pd = it)
     }
 }
 
@@ -128,12 +146,39 @@ fun DrawerState(selected: Boolean,
                 item: DrawerScreenHandler,
                 onSelected: () -> Unit)
 {
-    val background = if (selected) Color.Red else Color.Transparent
+    val background = if (selected) Color.White else Color.Transparent
+    val text = if (selected) Color(0xff26662a) else Color.White
     Row(modifier = Modifier.fillMaxWidth()
         .padding(horizontal = 8.dp, vertical = 16.dp).background(background)
         .clickable {onSelected()}) {
-        Icon(painter = painterResource(id = item.icon), contentDescription = item.title, Modifier.padding(end = 8.dp, top = 4.dp), tint = Color.White)
-        Text(text = item.title, style = MaterialTheme.typography.titleMedium, color = Color.White)
+        Icon(painter = painterResource(id = item.icon), contentDescription = item.title, Modifier.padding(end = 8.dp, top = 4.dp), tint = text)
+        Text(text = item.title, style = MaterialTheme.typography.titleMedium, color = text)
 
+    }
+}
+
+@Composable
+fun Navigation(navController: NavController, viewmodel: MainViewModel, pd:PaddingValues)
+{
+    NavHost(navController = navController as NavHostController,
+        startDestination = Screen.MapScreen.route, modifier = Modifier.padding(pd)) {
+        composable(DrawerScreenHandler.EmergencyContact.route)
+        {
+
+        }
+        composable(DrawerScreenHandler.TripPlanner.route)
+        {
+
+        }
+        composable(DrawerScreenHandler.FavouriteRoutes.route)
+        {
+
+        }
+        composable(Screen.MapScreen.route)
+        {
+            MapScreen(
+                authoriseViewModel = AuthoriseViewModel(),
+                onNavigateToSignIn = {Screen.LoginScreen.route})
+        }
     }
 }

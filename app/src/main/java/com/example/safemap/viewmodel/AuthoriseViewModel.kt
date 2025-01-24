@@ -4,11 +4,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.safemap.data.Connection
-import com.example.safemap.data.Result
-import com.example.safemap.data.Result.Error
-import com.example.safemap.data.Result.Success
-import com.example.safemap.data.UserRepository
+import com.example.safemap.Model.Connection
+import com.example.safemap.Model.Result
+import com.example.safemap.Model.Result.Error
+import com.example.safemap.Model.Result.Success
+import com.example.safemap.Model.UserRepository
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
