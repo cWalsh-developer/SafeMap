@@ -15,6 +15,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.safemap.Model.LocationData
 import com.example.safemap.View.MainView
 import com.example.safemap.View.LoginScreen
 import com.example.safemap.View.MapScreen
@@ -23,6 +24,8 @@ import com.example.safemap.View.SignUpScreen
 import com.example.safemap.ui.theme.SafeMapTheme
 import com.example.safemap.viewmodel.AuthoriseViewModel
 import com.example.safemap.Model.Result
+import com.example.safemap.View.LocationScreenView
+import com.example.safemap.viewmodel.LocationViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,12 +35,13 @@ class MainActivity : ComponentActivity() {
         setContent {
             val navController = rememberNavController()
             val authoriseViewModel: AuthoriseViewModel = viewModel()
+            val locationViewModel: LocationViewModel = viewModel()
 
                 SafeMapTheme {
                 Surface(modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background)
                 {
-                    NavigationManager(navController, authoriseViewModel)
+                    NavigationManager(navController, authoriseViewModel, locationViewModel)
                 }
             }
         }
@@ -45,7 +49,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun NavigationManager(navController: NavHostController, authoriseViewModel: AuthoriseViewModel) {
+fun NavigationManager(navController: NavHostController, authoriseViewModel: AuthoriseViewModel, locationViewModel: LocationViewModel) {
     NavHost(
         navController, startDestination =
             if(AuthoriseViewModel().checkStatus() == Result.Success(true))
@@ -64,6 +68,12 @@ fun NavigationManager(navController: NavHostController, authoriseViewModel: Auth
             SignUpScreen(authoriseViewModel = authoriseViewModel,onNavigateToSignIn = {
                 navController.navigate(Screen.LoginScreen.route) })
         }
+        composable(Screen.LocationScreen.route)
+        {
+            LocationScreenView(location = locationViewModel.location.value!!, onLocationSelected = {
+                LocationData(locationViewModel.location.value!!.latitude, locationViewModel.location.value!!.longitude)
+            })
+        }
         composable(Screen.LoginScreen.route)
         {
             LoginScreen(authoriseViewModel = authoriseViewModel,
@@ -73,13 +83,11 @@ fun NavigationManager(navController: NavHostController, authoriseViewModel: Auth
         composable(Screen.MapScreen.route)
         {
             MapScreen(
-                authoriseViewModel = authoriseViewModel,
-                onNavigateToSignIn = {
-                    navController.navigate(Screen.LoginScreen.route) })
+                viewmodel = LocationViewModel())
         }
         composable(Screen.MainView.route)
         {
-            MainView(authoriseViewModel = authoriseViewModel, onNavigateToSignIn = {
+            MainView(locationViewModel = locationViewModel, authoriseViewModel = authoriseViewModel, onNavigateToSignIn = {
                 navController.navigate(Screen.LoginScreen.route) })
             }
         }

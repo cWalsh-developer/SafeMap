@@ -25,6 +25,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -48,6 +49,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.safemap.viewmodel.AuthoriseViewModel
 import kotlinx.coroutines.CoroutineScope
 import com.example.safemap.Model.Result
+import com.example.safemap.viewmodel.LocationViewModel
 import com.example.safemap.viewmodel.MainViewModel
 import kotlinx.coroutines.launch
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
@@ -55,6 +57,7 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainView(
+    locationViewModel: LocationViewModel,
     authoriseViewModel: AuthoriseViewModel,
     onNavigateToSignIn: () -> Unit,
 )
@@ -78,7 +81,7 @@ fun MainView(
     systemUIController.setStatusBarColor(Color.Transparent)
 
     BackHandler {
-        //Do Nothing
+        //Do Nothing to prevent the user from going back after pressing back button on phone
     }
     Scaffold(
         topBar =
@@ -177,8 +180,7 @@ fun Navigation(navController: NavController, viewmodel: MainViewModel, pd:Paddin
         composable(Screen.MapScreen.route)
         {
             MapScreen(
-                authoriseViewModel = AuthoriseViewModel(),
-                onNavigateToSignIn = {Screen.LoginScreen.route})
+                viewmodel = LocationViewModel())
         }
     }
 }

@@ -48,10 +48,10 @@ fun LoginScreen(
     val context = LocalContext.current
     var email by remember { mutableStateOf("") }
     val result by authoriseViewModel.authorisationResult.observeAsState()
-    Log.d("TAG", "LoginScreen: ${result}")
     var password by remember {
         mutableStateOf("")
     }
+
 
     BackHandler {
         //Do Nothing
