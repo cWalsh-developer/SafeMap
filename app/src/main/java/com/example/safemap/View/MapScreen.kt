@@ -7,14 +7,12 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.core.app.ActivityCompat
 import com.example.safemap.MainActivity
 import com.example.safemap.Model.LocationUtilities
 import androidx.compose.ui.platform.LocalContext
 import com.example.safemap.Model.LocationData
 import com.example.safemap.viewmodel.LocationViewModel
-import kotlin.reflect.KProperty
 
 @Composable
 fun MapScreen(
@@ -28,7 +26,6 @@ fun MapScreen(
     val requestPermissionPopup = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions(),
         onResult = { permissions ->
-            run {
                 if (permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true
                     && permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
                 ) {
@@ -52,11 +49,11 @@ fun MapScreen(
                     }
                 }
             }
-        },
     )
     if(location == null)
     {
-        Text(text = "Loading...")
+        Text("Loading...")
+        locationUtilities.requestLocationUpdates(viewModel = viewmodel)
     }
     else{
         LocationScreenView(

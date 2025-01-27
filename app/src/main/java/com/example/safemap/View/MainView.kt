@@ -12,8 +12,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.BottomNavigation
+import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.ScaffoldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
@@ -80,10 +83,30 @@ fun MainView(
     val systemUIController = rememberSystemUiController()
     systemUIController.setStatusBarColor(Color.Transparent)
 
+    val bottomBar: @Composable () -> Unit = {
+        if(currentScreen is Screen.DrawerScreenHandler || currentScreen is Screen.MapScreen)
+        {
+            BottomNavigation(Modifier.wrapContentSize().height(100.dp), backgroundColor = Color(0xff26662a)) {
+                screensInBottom.forEach {
+                    item -> BottomNavigationItem(selected = currentRoute == item.bottomRoute, onClick = {
+                      navController.navigate(item.bottomRoute)
+                }, icon = { Icon(contentDescription = item.bottomTitle, painter = painterResource(id = item.icon),
+                    tint = Color.White) }, label = {
+                        Text(text = item.bottomTitle, color = Color.White)
+                },
+                    selectedContentColor = Color.LightGray,
+                    unselectedContentColor = Color.White,
+                        modifier = Modifier.background(Color(0xff26662a)))
+                }
+            }
+        }
+    }
+
     BackHandler {
         //Do Nothing to prevent the user from going back after pressing back button on phone
     }
     Scaffold(
+        bottomBar = bottomBar,
         topBar =
         {
             TopAppBar(
@@ -114,7 +137,7 @@ fun MainView(
                     LazyColumn(Modifier.padding(45.dp))
                     {
                         items(screensInsideOfDrawer){
-                            item -> DrawerState(selected = currentRoute == item.route, item = item) {
+                            item -> DrawerState(selected = currentRoute == item.drawerRoute, item = item) {
                                 scope.launch {
                                     scaffoldState.drawerState.close()
                                 }
@@ -146,7 +169,7 @@ fun MainView(
 
 @Composable
 fun DrawerState(selected: Boolean,
-                item: DrawerScreenHandler,
+                item: Screen.DrawerScreenHandler,
                 onSelected: () -> Unit)
 {
     val background = if (selected) Color.White else Color.Transparent
@@ -165,15 +188,15 @@ fun Navigation(navController: NavController, viewmodel: MainViewModel, pd:Paddin
 {
     NavHost(navController = navController as NavHostController,
         startDestination = Screen.MapScreen.route, modifier = Modifier.padding(pd)) {
-        composable(DrawerScreenHandler.EmergencyContact.route)
+        composable(Screen.DrawerScreenHandler.EmergencyContact.route)
         {
 
         }
-        composable(DrawerScreenHandler.TripPlanner.route)
+        composable(Screen.DrawerScreenHandler.TripPlanner.route)
         {
 
         }
-        composable(DrawerScreenHandler.FavouriteRoutes.route)
+        composable(Screen.DrawerScreenHandler.FavouriteRoutes.route)
         {
 
         }
@@ -181,6 +204,18 @@ fun Navigation(navController: NavController, viewmodel: MainViewModel, pd:Paddin
         {
             MapScreen(
                 viewmodel = LocationViewModel())
+        }
+        composable(Screen.BottomScreen.AccountScreen.bottomRoute)
+        {
+            //TODO Account Screen
+        }
+        composable(Screen.BottomScreen.SettingsScreen.bottomRoute)
+        {
+           //TODO Settings Screen
+        }
+        composable(Screen.BottomScreen.MapScreen.bottomRoute)
+        {
+            //TODO Map Screen
         }
     }
 }

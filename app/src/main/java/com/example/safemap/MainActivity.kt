@@ -16,6 +16,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.safemap.Model.LocationData
+import com.example.safemap.Model.LocationUtilities
 import com.example.safemap.View.MainView
 import com.example.safemap.View.LoginScreen
 import com.example.safemap.View.MapScreen
@@ -36,12 +37,13 @@ class MainActivity : ComponentActivity() {
             val navController = rememberNavController()
             val authoriseViewModel: AuthoriseViewModel = viewModel()
             val locationViewModel: LocationViewModel = viewModel()
+            val locationUtilities = LocationUtilities(this)
 
                 SafeMapTheme {
                 Surface(modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background)
                 {
-                    NavigationManager(navController, authoriseViewModel, locationViewModel)
+                    NavigationManager(navController, authoriseViewModel, locationViewModel, locationUtilities)
                 }
             }
         }
@@ -49,7 +51,8 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun NavigationManager(navController: NavHostController, authoriseViewModel: AuthoriseViewModel, locationViewModel: LocationViewModel) {
+fun NavigationManager(navController: NavHostController, authoriseViewModel: AuthoriseViewModel, locationViewModel: LocationViewModel,
+                      locationUtilities: LocationUtilities) {
     NavHost(
         navController, startDestination =
             if(AuthoriseViewModel().checkStatus() == Result.Success(true))
