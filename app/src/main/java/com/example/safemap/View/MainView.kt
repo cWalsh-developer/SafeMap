@@ -103,7 +103,7 @@ fun MainView(
     }
 
     BackHandler {
-        //Do Nothing to prevent the user from going back after pressing back button on phone
+        //Do Nothing to prevent the user from going back after pressing back button on the phone
     }
     Scaffold(
         bottomBar = bottomBar,
