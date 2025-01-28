@@ -6,6 +6,7 @@ data class UserAddresses(
     val townCity: String = "",
     val county: String = "",
     val country: String = "",
-    val postCode: String = "") {
+    val postCode: String = "",
+    val userID: String = "") {
 
 }

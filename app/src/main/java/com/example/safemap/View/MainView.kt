@@ -163,7 +163,7 @@ fun MainView(
         }
     )
     {
-        Navigation(navController = navController, viewmodel = viewModel, pd = it)
+        Navigation(navController = navController, viewmodel = viewModel, pd = it, authorisationModel = authoriseViewModel)
     }
 }
 
@@ -184,7 +184,7 @@ fun DrawerState(selected: Boolean,
 }
 
 @Composable
-fun Navigation(navController: NavController, viewmodel: MainViewModel, pd:PaddingValues)
+fun Navigation(navController: NavController, viewmodel: MainViewModel, pd:PaddingValues, authorisationModel: AuthoriseViewModel)
 {
     NavHost(navController = navController as NavHostController,
         startDestination = Screen.MapScreen.route, modifier = Modifier.padding(pd)) {
@@ -205,9 +205,15 @@ fun Navigation(navController: NavController, viewmodel: MainViewModel, pd:Paddin
             MapScreen(
                 viewmodel = LocationViewModel())
         }
+        composable(Screen.MedicalScreen.route)
+        {
+
+        }
         composable(Screen.BottomScreen.AccountScreen.bottomRoute)
         {
-            //TODO Account Screen
+            AccountView(authorisationModel = authorisationModel, onNavigateToMedicalInfo = {
+                navController.navigate(Screen.MedicalScreen.route)
+            })
         }
         composable(Screen.BottomScreen.SettingsScreen.bottomRoute)
         {
@@ -215,7 +221,7 @@ fun Navigation(navController: NavController, viewmodel: MainViewModel, pd:Paddin
         }
         composable(Screen.BottomScreen.MapScreen.bottomRoute)
         {
-            //TODO Map Screen
+            //TODO Map Screen Pop Up
         }
     }
 }
