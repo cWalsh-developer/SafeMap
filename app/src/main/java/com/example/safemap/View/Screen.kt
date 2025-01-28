@@ -11,7 +11,7 @@ sealed class Screen(val title: String, val route: String) {
     object LocationScreen: Screen("Location","LocationScreen")
     object MedicalScreen: Screen("Medical","MedicalScreen")
 
-    sealed class DrawerScreenHandler(val drawerTitle: String, val drawerRoute: String, @DrawableRes val icon: Int) : Screen(drawerTitle, drawerRoute){
+    sealed class DrawerScreenHandler(drawerTitle: String, val drawerRoute: String, @DrawableRes val icon: Int) : Screen(drawerTitle, drawerRoute){
         object TripPlanner : DrawerScreenHandler("Trip Planner", "trip_planner", R.drawable.ic_trip_planner)
         object FavouriteRoutes : DrawerScreenHandler("Favourite Routes", "favourite_routes", R.drawable.ic_favourite_routes)
         object EmergencyContact : DrawerScreenHandler("Emergency Contact", "emergency_contact", R.drawable.ic_emergency_contact)

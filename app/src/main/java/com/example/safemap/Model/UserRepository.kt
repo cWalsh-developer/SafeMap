@@ -1,10 +1,9 @@
 package com.example.safemap.Model
 
-import android.content.ContentValues.TAG
+
 import android.util.Log
 import com.example.safemap.Model.Result.*
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
@@ -64,7 +63,7 @@ class UserRepository(private val auth: FirebaseAuth,
         return userData
     }
 
-    suspend fun loadAddress(): UserAddresses
+    fun loadAddress(): UserAddresses
     {
         if(auth.currentUser !=null)
         {
