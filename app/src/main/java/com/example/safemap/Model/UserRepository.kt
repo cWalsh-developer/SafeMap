@@ -6,12 +6,13 @@ import com.example.safemap.Model.Result.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 class UserRepository(private val auth: FirebaseAuth,
     private val firestore: FirebaseFirestore
 ) {
     private var userData: User = User()
-    private var addressData: UserAddresses = UserAddresses()
 
     suspend fun signUp(email: String, password: String, firstName: String, lastName: String, telephone: String,
                        addressLine1: String, addressLine2: String,
@@ -63,19 +64,28 @@ class UserRepository(private val auth: FirebaseAuth,
         return userData
     }
 
-    fun loadAddress(): UserAddresses
-    {
-        if(auth.currentUser !=null)
-        {
-            firestore.collection("users").document(auth.currentUser!!.uid)
-                .collection("addresses").get().addOnSuccessListener { result ->
-                    for (document in result)
-                    {
-                        addressData = document.toObject(UserAddresses::class.java)
+    suspend fun loadAddress(): UserAddresses? {
+        if (auth.currentUser != null) {
+            return suspendCoroutine { continuation ->
+                firestore.collection("users").document(auth.currentUser!!.uid)
+                    .collection("addresses")
+                    .get()
+                    .addOnSuccessListener { result ->
+                        for (document in result) {
+                            val address = document.toObject(UserAddresses::class.java)
+                            continuation.resume(address)
+                            return@addOnSuccessListener
+                        }
+                        continuation.resume(null)
                     }
-                }
+                    .addOnFailureListener { exception ->
+                        println("Failed to load address data: ${exception.message}")
+                        continuation.resume(null)
+                    }
+            }
         }
-        return addressData
+        return null
     }
 
-    }
+
+}

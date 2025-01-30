@@ -20,6 +20,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -73,9 +74,9 @@ fun LoginScreen(
         )
 
         OutlinedTextField(
-            colors = TextFieldDefaults.outlinedTextFieldColors(
+            colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = Color(0xff26662a),
-                focusedLabelColor = Color(0xff26662a)
+                focusedLabelColor = Color(0xff26662a),
             ),
             value = email,
             onValueChange = { email = it },
@@ -85,9 +86,9 @@ fun LoginScreen(
                 .padding(8.dp)
         )
         OutlinedTextField(
-            colors = TextFieldDefaults.outlinedTextFieldColors(
+            colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = Color(0xff26662a),
-                focusedLabelColor = Color(0xff26662a)
+                focusedLabelColor = Color(0xff26662a),
             ),
             value = password,
             onValueChange = { password = it },

@@ -8,10 +8,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -26,16 +28,24 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material.Scaffold
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldColors
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -50,6 +60,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.safemap.viewmodel.AuthoriseViewModel
 import kotlinx.coroutines.CoroutineScope
 import com.example.safemap.Model.Result
+import com.example.safemap.R
 import com.example.safemap.viewmodel.LocationViewModel
 import com.example.safemap.viewmodel.MainViewModel
 import kotlinx.coroutines.launch
@@ -72,6 +83,10 @@ fun MainView(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
+    var text by remember { mutableStateOf("") }
+    var active by remember { mutableStateOf(false) }
+    var pad = 85.dp
+
     val currentScreen = remember{
         viewModel.currentScreen.value
     }
@@ -84,7 +99,10 @@ fun MainView(
     val bottomBar: @Composable () -> Unit = {
         if(currentScreen is Screen.DrawerScreenHandler || currentScreen is Screen.MapScreen)
         {
-            BottomNavigation(Modifier.wrapContentSize().height(100.dp), backgroundColor = Color(0xff26662a)) {
+            BottomNavigation(
+                Modifier
+                    .wrapContentSize()
+                    .height(100.dp), backgroundColor = Color(0xff26662a)) {
                 screensInBottom.forEach {
                     item -> BottomNavigationItem(selected = currentRoute == item.bottomRoute, onClick = {
                       navController.navigate(item.bottomRoute)
@@ -108,9 +126,70 @@ fun MainView(
         topBar =
         {
             TopAppBar(
-                modifier = Modifier.height(70.dp),
+                modifier = Modifier.height(103.dp),
                 title = {
 
+                },
+                actions = {
+                    SearchBar(
+                        shape = MaterialTheme.shapes.medium,
+                        modifier = Modifier.width(305.dp)
+                            .padding(start = 3.dp, end = 10.dp, top = 1.dp, bottom = 5.dp),
+                        query = text,
+                        onQueryChange = { newText ->
+                            text = newText
+                            },
+                        onSearch = {
+                            active = false
+                            // Perform search here
+                            println("Search query: $text")
+                        },
+                        active = active,
+                        onActiveChange = { active = it
+                            pad = 700.dp
+                            },
+                        placeholder = { Text("Search", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 1.dp)) },
+                        leadingIcon = {
+                            if (active) {
+                                IconButton(onClick = { active = false }) {
+                                    Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                                }
+                            } else {
+                                Icon(imageVector = Icons.Default.Menu, contentDescription = "Search")
+                            }
+                        },
+                        trailingIcon = {
+                            if (active) {
+                                IconButton(onClick = {
+                                    if (text.isNotEmpty()) {
+                                        text = ""
+                                    } else {
+                                        active = false
+                                    }
+                                }) {
+                                    Icon(imageVector = Icons.Default.Close, contentDescription = "Clear")
+                                }
+                            }
+                        },
+                        colors = SearchBarDefaults.colors(
+                            containerColor = Color.White,
+                            inputFieldColors = TextFieldDefaults.colors(
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.LightGray,
+                            unfocusedContainerColor = Color.White,
+                            focusedContainerColor = Color.White,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedLeadingIconColor = Color.Black,
+                            focusedLeadingIconColor = Color.Black,
+                            cursorColor = Color.Black,
+                        )),
+                    ) {
+                        // Search suggestions or results can go here
+                    }
+                    Icon(modifier = Modifier
+                        .padding(top = 5.dp, bottom = 5.dp)
+                        .clickable {}, painter = painterResource(id = R.drawable.ic_wifi), contentDescription = "Contact", tint = Color.White)
                 },
                 colors = TopAppBarDefaults.topAppBarColors(Color(0xff26662a)),
                 navigationIcon = { IconButton(onClick =
@@ -122,12 +201,14 @@ fun MainView(
 
                 })
                 {
-                    Icon(imageVector = Icons.Default.Menu, contentDescription = "Menu", tint = Color.White)
+                    Icon(imageVector = Icons.Default.Menu, contentDescription = "Menu", tint = Color.White, modifier = Modifier.padding(top = 17.dp))
                 }}
             )
         }, scaffoldState = scaffoldState,
         drawerContent = {
-            Box(modifier = Modifier.background(Color(0xff26662a)).fillMaxSize())
+            Box(modifier = Modifier
+                .background(Color(0xff26662a))
+                .fillMaxSize())
             {
                 Column {
                     Text(text = "Menu", modifier = Modifier.padding(bottom = 40.dp, start = 16.dp, top = 16.dp),
@@ -172,9 +253,11 @@ fun DrawerState(selected: Boolean,
 {
     val background = if (selected) Color.White else Color.Transparent
     val text = if (selected) Color(0xff26662a) else Color.White
-    Row(modifier = Modifier.fillMaxWidth()
-        .padding(horizontal = 8.dp, vertical = 16.dp).background(background)
-        .clickable {onSelected()}) {
+    Row(modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 8.dp, vertical = 16.dp)
+        .background(background)
+        .clickable { onSelected() }) {
         Icon(painter = painterResource(id = item.icon), contentDescription = item.title, Modifier.padding(end = 8.dp, top = 4.dp), tint = text)
         Text(text = item.title, style = MaterialTheme.typography.titleMedium, color = text)
 
@@ -209,7 +292,8 @@ fun Navigation(navController: NavController, viewmodel: MainViewModel, pd:Paddin
         }
         composable(Screen.BottomScreen.AccountScreen.bottomRoute)
         {
-            AccountView(authorisationModel = authorisationModel, onNavigateToMedicalInfo = {
+            AccountView(authorisationModel = authorisationModel,
+                onNavigateToMedicalInfo = {
                 navController.navigate(Screen.MedicalScreen.route)
             })
         }
@@ -220,6 +304,8 @@ fun Navigation(navController: NavController, viewmodel: MainViewModel, pd:Paddin
         composable(Screen.BottomScreen.MapScreen.bottomRoute)
         {
             //TODO Map Screen Pop Up
+            MapScreen(
+                viewmodel = LocationViewModel())
         }
     }
 }

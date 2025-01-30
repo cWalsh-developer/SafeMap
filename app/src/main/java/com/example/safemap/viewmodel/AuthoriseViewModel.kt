@@ -1,5 +1,6 @@
 package com.example.safemap.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -12,6 +13,7 @@ import com.example.safemap.Model.User
 import com.example.safemap.Model.UserAddresses
 import com.example.safemap.Model.UserRepository
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
 class AuthoriseViewModel : ViewModel() {
@@ -20,8 +22,19 @@ class AuthoriseViewModel : ViewModel() {
         Connection.provideFirestore()
     )
 
-    private var userData: User = User()
-    private var addressData: UserAddresses = UserAddresses()
+    private val _userData = MutableStateFlow<User?>(null)
+    val userData: MutableStateFlow<User?> = _userData
+
+    private val _addressData = MutableStateFlow<UserAddresses?>(null)
+    val addressData: MutableStateFlow<UserAddresses?> = _addressData
+
+    init{
+        viewModelScope.launch {
+            _userData.value = userRepository.loadUser()
+            _addressData.value = userRepository.loadAddress()
+        }
+    }
+
 
     private val _authorisationResultHolder = MutableLiveData<Result<Boolean>>()
     val authorisationResult: LiveData<Result<Boolean>> get() = _authorisationResultHolder
@@ -70,20 +83,5 @@ class AuthoriseViewModel : ViewModel() {
     fun signOut(result: Result.LoggedOut) {
         FirebaseAuth.getInstance().signOut()
         _authorisationResultHolder.value = result
-    }
-
-    fun loadUser(): User {
-        viewModelScope.launch {
-            userData = userRepository.loadUser()
-        }
-        return userData
-    }
-
-    fun loadAddress(): UserAddresses {
-        viewModelScope.launch {
-            addressData = userRepository.loadAddress()
-        }
-        return addressData
-
     }
 }
