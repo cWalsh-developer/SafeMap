@@ -1,7 +1,6 @@
 package com.example.safemap.viewmodel
 
 import android.util.Log
-import androidx.activity.result.launch
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.safemap.Model.Streetlight
