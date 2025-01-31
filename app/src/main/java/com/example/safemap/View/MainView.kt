@@ -60,9 +60,11 @@ import androidx.navigation.compose.rememberNavController
 import com.example.safemap.viewmodel.AuthoriseViewModel
 import kotlinx.coroutines.CoroutineScope
 import com.example.safemap.Model.Result
+import com.example.safemap.Model.StreetlightRepository
 import com.example.safemap.R
 import com.example.safemap.viewmodel.LocationViewModel
 import com.example.safemap.viewmodel.MainViewModel
+import com.example.safemap.viewmodel.StreetlightViewModel
 import kotlinx.coroutines.launch
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
@@ -284,7 +286,9 @@ fun Navigation(navController: NavController, viewmodel: MainViewModel, pd:Paddin
         composable(Screen.MapScreen.route)
         {
             MapScreen(
-                viewmodel = LocationViewModel())
+                viewmodel = LocationViewModel(),
+                streetlightViewModel = StreetlightViewModel(streetlightRepository = StreetlightRepository())
+            )
         }
         composable(Screen.MedicalScreen.route)
         {
@@ -305,7 +309,8 @@ fun Navigation(navController: NavController, viewmodel: MainViewModel, pd:Paddin
         {
             //TODO Map Screen Pop Up
             MapScreen(
-                viewmodel = LocationViewModel())
+                viewmodel = LocationViewModel(),
+                streetlightViewModel = StreetlightViewModel(streetlightRepository = StreetlightRepository()))
         }
     }
 }

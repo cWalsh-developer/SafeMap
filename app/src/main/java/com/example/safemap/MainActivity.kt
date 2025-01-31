@@ -25,8 +25,10 @@ import com.example.safemap.View.SignUpScreen
 import com.example.safemap.ui.theme.SafeMapTheme
 import com.example.safemap.viewmodel.AuthoriseViewModel
 import com.example.safemap.Model.Result
+import com.example.safemap.Model.StreetlightRepository
 import com.example.safemap.View.LocationScreenView
 import com.example.safemap.viewmodel.LocationViewModel
+import com.example.safemap.viewmodel.StreetlightViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -86,7 +88,9 @@ fun NavigationManager(navController: NavHostController, authoriseViewModel: Auth
         composable(Screen.MapScreen.route)
         {
             MapScreen(
-                viewmodel = LocationViewModel())
+                viewmodel = LocationViewModel(),
+                streetlightViewModel = StreetlightViewModel(streetlightRepository = StreetlightRepository())
+            )
         }
         composable(Screen.MainView.route)
         {

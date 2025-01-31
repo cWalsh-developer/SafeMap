@@ -20,16 +20,25 @@ import com.example.safemap.R
 import com.example.safemap.viewmodel.AuthoriseViewModel
 
 @Composable
-    fun AccountView(
-        authorisationModel: AuthoriseViewModel,
-        onNavigateToMedicalInfo: () -> Unit
-    ) {
-        val currentUserData = rememberUpdatedState(authorisationModel.userData.collectAsState().value)
-        val currentAddressData = rememberUpdatedState(authorisationModel.addressData.collectAsState().value)
-
-        AccountContent(currentUserData.value!!, currentAddressData.value!!, onNavigateToMedicalInfo)
+fun AccountView(
+    authorisationModel: AuthoriseViewModel,
+    onNavigateToMedicalInfo: () -> Unit
+) {
+    // Trigger data loading
+    LaunchedEffect(Unit) {
+        authorisationModel.loadUserData()
     }
 
+    // Observe user and address data
+    val currentUserData = authorisationModel.userData.collectAsState().value
+    val currentAddressData = authorisationModel.addressData.collectAsState().value
+
+    if (currentUserData == null || currentAddressData == null) {
+        Text("Loading...", modifier = Modifier.fillMaxSize())
+    } else {
+        AccountContent(currentUserData, currentAddressData, onNavigateToMedicalInfo)
+    }
+}
 
 @Composable
 fun AccountContent(userData: User, addressData: UserAddresses, onNavigateToMedicalInfo: () -> Unit) {

@@ -28,10 +28,17 @@ class AuthoriseViewModel : ViewModel() {
     private val _addressData = MutableStateFlow<UserAddresses?>(null)
     val addressData: MutableStateFlow<UserAddresses?> = _addressData
 
-    init{
+    // Load user and address data
+    fun loadUserData() {
         viewModelScope.launch {
-            _userData.value = userRepository.loadUser()
-            _addressData.value = userRepository.loadAddress()
+            try {
+                _userData.value = userRepository.loadUser()
+                _addressData.value = userRepository.loadAddress()
+                println("Data loaded successfully")
+            } catch (e: Exception) {
+                _userData.value = null
+                _addressData.value = null
+            }
         }
     }
 
@@ -81,6 +88,8 @@ class AuthoriseViewModel : ViewModel() {
         }
 
     fun signOut(result: Result.LoggedOut) {
+        _userData.value = null
+        _addressData.value = null
         FirebaseAuth.getInstance().signOut()
         _authorisationResultHolder.value = result
     }

@@ -13,10 +13,12 @@ import com.example.safemap.Model.LocationUtilities
 import androidx.compose.ui.platform.LocalContext
 import com.example.safemap.Model.LocationData
 import com.example.safemap.viewmodel.LocationViewModel
+import com.example.safemap.viewmodel.StreetlightViewModel
 
 @Composable
 fun MapScreen(
     viewmodel: LocationViewModel,
+    streetlightViewModel: StreetlightViewModel
 )
 {
     val context = LocalContext.current
@@ -59,6 +61,7 @@ fun MapScreen(
         LocationScreenView(
             location,
             onLocationSelected = {LocationData(location.latitude, location.longitude)},
+            streetlightViewModel = streetlightViewModel
         )
     }
     LaunchedEffect(Unit) {

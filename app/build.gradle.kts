@@ -68,6 +68,7 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.7.5")
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("org.locationtech.proj4j:proj4j:1.1.0")
     implementation("androidx.navigation:navigation-compose:2.7.4")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
     implementation("androidx.compose.runtime:runtime-livedata:1.5.2")
