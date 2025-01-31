@@ -1,3 +1,4 @@
+
 package com.example.safemap.viewmodel
 
 import android.util.Log
@@ -21,6 +22,10 @@ class StreetlightViewModel(private val streetlightRepository: StreetlightReposit
 
     private val _error = MutableStateFlow<Throwable?>(null)
     val error: StateFlow<Throwable?> = _error.asStateFlow()
+
+    init {
+        loadStreetlights()
+    }
 
     fun loadStreetlights() {
         viewModelScope.launch {

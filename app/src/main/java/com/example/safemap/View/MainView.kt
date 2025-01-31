@@ -1,3 +1,4 @@
+
 package com.example.safemap.View
 
 
@@ -103,15 +104,15 @@ fun MainView(
                     .wrapContentSize()
                     .height(100.dp), backgroundColor = Color(0xff26662a)) {
                 screensInBottom.forEach {
-                    item -> BottomNavigationItem(selected = currentRoute == item.bottomRoute, onClick = {
-                      navController.navigate(item.bottomRoute)
+                        item -> BottomNavigationItem(selected = currentRoute == item.bottomRoute, onClick = {
+                    navController.navigate(item.bottomRoute)
                 }, icon = { Icon(contentDescription = item.bottomTitle, painter = painterResource(id = item.icon),
                     tint = Color.White) }, label = {
-                        Text(text = item.bottomTitle, color = Color.White)
+                    Text(text = item.bottomTitle, color = Color.White)
                 },
                     selectedContentColor = Color.LightGray,
                     unselectedContentColor = Color.White,
-                        modifier = Modifier.background(Color(0xff26662a)))
+                    modifier = Modifier.background(Color(0xff26662a)))
                 }
             }
         }
@@ -137,7 +138,7 @@ fun MainView(
                         query = text,
                         onQueryChange = { newText ->
                             text = newText
-                            },
+                        },
                         onSearch = {
                             active = false
                             // Perform search here
@@ -146,7 +147,7 @@ fun MainView(
                         active = active,
                         onActiveChange = { active = it
                             pad = 700.dp
-                            },
+                        },
                         placeholder = { Text("Search", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 1.dp)) },
                         leadingIcon = {
                             if (active) {
@@ -173,16 +174,16 @@ fun MainView(
                         colors = SearchBarDefaults.colors(
                             containerColor = Color.White,
                             inputFieldColors = TextFieldDefaults.colors(
-                            focusedTextColor = Color.Black,
-                            unfocusedTextColor = Color.LightGray,
-                            unfocusedContainerColor = Color.White,
-                            focusedContainerColor = Color.White,
-                            unfocusedIndicatorColor = Color.Transparent,
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedLeadingIconColor = Color.Black,
-                            focusedLeadingIconColor = Color.Black,
-                            cursorColor = Color.Black,
-                        )),
+                                focusedTextColor = Color.Black,
+                                unfocusedTextColor = Color.LightGray,
+                                unfocusedContainerColor = Color.White,
+                                focusedContainerColor = Color.White,
+                                unfocusedIndicatorColor = Color.Transparent,
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedLeadingIconColor = Color.Black,
+                                focusedLeadingIconColor = Color.Black,
+                                cursorColor = Color.Black,
+                            )),
                     ) {
                         // Search suggestions or results can go here
                     }
@@ -215,10 +216,10 @@ fun MainView(
                     LazyColumn(Modifier.padding(45.dp))
                     {
                         items(screensInsideOfDrawer){
-                            item -> DrawerState(selected = currentRoute == item.drawerRoute, item = item) {
-                                scope.launch {
-                                    scaffoldState.drawerState.close()
-                                }
+                                item -> DrawerState(selected = currentRoute == item.drawerRoute, item = item) {
+                            scope.launch {
+                                scaffoldState.drawerState.close()
+                            }
                             navController.navigate(item.route)
                         }
                         }
@@ -295,12 +296,12 @@ fun Navigation(navController: NavController, viewmodel: MainViewModel, pd:Paddin
         {
             AccountView(authorisationModel = authorisationModel,
                 onNavigateToMedicalInfo = {
-                navController.navigate(Screen.MedicalScreen.route)
-            })
+                    navController.navigate(Screen.MedicalScreen.route)
+                })
         }
         composable(Screen.BottomScreen.SettingsScreen.bottomRoute)
         {
-           //TODO Settings Screen
+            //TODO Settings Screen
         }
         composable(Screen.BottomScreen.MapScreen.bottomRoute)
         {
