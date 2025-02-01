@@ -51,7 +51,7 @@ dependencies {
     implementation("com.google.maps.android:maps-compose:2.15.0")
     implementation("com.google.android.gms:play-services-maps:18.1.0")
     implementation("com.google.android.gms:play-services-location:21.0.1")
-
+    implementation("com.google.maps.android:android-maps-utils:3.5.3")
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.30.1")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

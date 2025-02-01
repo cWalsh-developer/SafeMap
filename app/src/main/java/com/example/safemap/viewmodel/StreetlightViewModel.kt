@@ -9,6 +9,7 @@ import com.example.safemap.Model.StreetlightRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class StreetlightViewModel(private val streetlightRepository: StreetlightRepository) :
@@ -23,23 +24,19 @@ class StreetlightViewModel(private val streetlightRepository: StreetlightReposit
     private val _error = MutableStateFlow<Throwable?>(null)
     val error: StateFlow<Throwable?> = _error.asStateFlow()
 
-    init {
-        loadStreetlights()
-    }
-
     fun loadStreetlights() {
-        viewModelScope.launch {
             _isLoading.value = true
-            _error.value = null
-            try {
-                val fetchedStreetlights = streetlightRepository.getStreetlights()
-                _streetlights.value = fetchedStreetlights
-            } catch (e: Exception) {
-                Log.e("StreetlightViewModel", "Error loading streetlights", e)
-                _error.value = e
-            } finally {
-                _isLoading.value = false
+            viewModelScope.launch {
+                _error.value = null
+                try {
+                    val fetchedStreetlights = streetlightRepository.getStreetlights()
+                    _streetlights.update {fetchedStreetlights}
+                } catch (e: Exception) {
+                    Log.e("StreetlightViewModel", "Error loading streetlights", e)
+                    _error.value = e
+                } finally {
+                    _isLoading.value = false
+                }
             }
         }
     }
-}

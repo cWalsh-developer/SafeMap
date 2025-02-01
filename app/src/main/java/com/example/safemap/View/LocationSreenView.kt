@@ -1,5 +1,3 @@
-package com.example.safemap.View
-
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -8,12 +6,8 @@ import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -30,68 +24,101 @@ import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @Composable
 fun LocationScreenView(
     location: LocationData,
     onLocationSelected: (LocationData) -> Unit,
     streetlightViewModel: StreetlightViewModel = viewModel()
-)
-{
-    val userLocation = remember{
-        mutableStateOf(LatLng(location.latitude, location.longitude))
-    }
+) {
+    val userLocation = remember { mutableStateOf(LatLng(location.latitude, location.longitude)) }
     val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(userLocation.value, 10f)
+        position = CameraPosition.fromLatLngZoom(userLocation.value, 12f)
     }
 
     val streetlights by streetlightViewModel.streetlights.collectAsState()
     val isLoading by streetlightViewModel.isLoading.collectAsState()
     val error by streetlightViewModel.error.collectAsState()
 
+    val context = LocalContext.current
+    var streetlightIcon by remember { mutableStateOf<BitmapDescriptor?>(null) }
+
+    // Load streetlights data
     LaunchedEffect(Unit) {
-        streetlightViewModel.loadStreetlights()
+            streetlightIcon = bitmapDescriptorFromPng(context, R.drawable.streetlight_image)
+            streetlightViewModel.loadStreetlights()
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    // Define the zoom threshold for rendering streetlights
+    val minimumZoomForStreetlights = 14.7f
 
-        GoogleMap(modifier = Modifier.fillMaxSize(),
+    Box(modifier = Modifier.fillMaxSize()) {
+        GoogleMap(
+            modifier = Modifier.fillMaxSize(),
             cameraPositionState = cameraPositionState,
             onMapClick = {
                 userLocation.value = it
-            }){
+            }
+        ) {
+            // User location marker
             Marker(state = MarkerState(position = userLocation.value))
-            val newLocation = LocationData(userLocation.value.latitude, userLocation.value.longitude)
-            onLocationSelected(newLocation)
 
-            val context = LocalContext.current
-            val streetlightIcon = bitmapDescriptorFromPng(context, R.drawable.streetlight_image)
-
-            streetlights.forEach { streetlight ->
-                Marker(
-                    state = MarkerState(
-                        position = LatLng(
-                            streetlight.latitude,
-                            streetlight.longitude
-                        )
-                    ),
-                    title = streetlight.id,
-                    snippet = "Leaflet Style ${streetlight.leafletStyle}, Borough: ${streetlight.borough}",
-                    visible = true,
-                    icon = streetlightIcon
+            // Update selected location callback
+            onLocationSelected(
+                LocationData(
+                    userLocation.value.latitude,
+                    userLocation.value.longitude
                 )
+            )
+
+            // Check if the zoom level is above the threshold
+            if (cameraPositionState.position.zoom >= minimumZoomForStreetlights) {
+                // Get visible bounds from camera state
+                val visibleBounds = cameraPositionState.projection?.visibleRegion?.latLngBounds
+
+                // Render markers only within visible bounds
+                visibleBounds?.let { bounds ->
+                    streetlightIcon?.let { icon ->
+                        streetlights.filter { bounds.contains(LatLng(it.latitude, it.longitude)) }
+                            .forEach { streetlight ->
+                                Marker(
+                                    state = MarkerState(
+                                        position = LatLng(
+                                            streetlight.latitude,
+                                            streetlight.longitude
+                                        )
+                                    ),
+                                    title = streetlight.id,
+                                    snippet = "Leaflet Style ${streetlight.leafletStyle}, Borough: ${streetlight.borough}",
+                                    icon = icon
+                                )
+                            }
+                    }
+                }
             }
         }
-        if (isLoading) {
-            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = Color(0xFF3CB1FA))
+
+        // Show loading indicator while data is being fetched
+        if (isLoading && streetlights.isEmpty()) {
+            CircularProgressIndicator(
+                modifier = Modifier.align(Alignment.Center),
+                color = Color(0xFF26662a),
+                trackColor = Color.LightGray
+            )
         }
+
+        // Log errors if any
         error?.let {
             Log.e("LocationScreenView", "Error loading streetlights", it)
         }
     }
 }
 
-fun bitmapDescriptorFromPng(context: Context, @DrawableRes id: Int): BitmapDescriptor? {
-    val bitmap: Bitmap = BitmapFactory.decodeResource(context.resources, id) ?: return null
-    return BitmapDescriptorFactory.fromBitmap(bitmap)
+suspend fun bitmapDescriptorFromPng(context: Context, @DrawableRes id: Int): BitmapDescriptor? {
+    return withContext(Dispatchers.IO) {
+        val bitmap = BitmapFactory.decodeResource(context.resources, id) ?: return@withContext null
+        BitmapDescriptorFactory.fromBitmap(bitmap)
+    }
 }

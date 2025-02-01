@@ -1,5 +1,6 @@
 package com.example.safemap
 
+import LocationScreenView
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -26,7 +27,6 @@ import com.example.safemap.ui.theme.SafeMapTheme
 import com.example.safemap.viewmodel.AuthoriseViewModel
 import com.example.safemap.Model.Result
 import com.example.safemap.Model.StreetlightRepository
-import com.example.safemap.View.LocationScreenView
 import com.example.safemap.viewmodel.LocationViewModel
 import com.example.safemap.viewmodel.StreetlightViewModel
 

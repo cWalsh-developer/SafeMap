@@ -1,5 +1,6 @@
 package com.example.safemap.View
 
+import LocationScreenView
 import android.Manifest
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -58,11 +59,9 @@ fun MapScreen(
         locationUtilities.requestLocationUpdates(viewModel = viewmodel)
     }
     else{
-        LocationScreenView(
-            location,
-            onLocationSelected = {LocationData(location.latitude, location.longitude)},
-            streetlightViewModel = streetlightViewModel
-        )
+        LocationScreenView( location = location, onLocationSelected = {
+            LocationData(it.latitude, it.longitude)
+        },streetlightViewModel = streetlightViewModel)
     }
     LaunchedEffect(Unit) {
         if(locationUtilities.hasLocationPermission(context))
