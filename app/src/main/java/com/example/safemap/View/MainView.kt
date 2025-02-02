@@ -62,6 +62,7 @@ import com.example.safemap.Model.StreetlightRepository
 import com.example.safemap.R
 import com.example.safemap.viewmodel.LocationViewModel
 import com.example.safemap.viewmodel.MainViewModel
+import com.example.safemap.viewmodel.SettingsViewModel
 import com.example.safemap.viewmodel.StreetlightViewModel
 import kotlinx.coroutines.launch
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
@@ -91,7 +92,7 @@ fun MainView(
         viewModel.currentScreen.value
     }
 
-//    val title = remember{ mutableStateOf(currentScreen) }
+    val settingsViewModel: SettingsViewModel = viewModel()
 
     val systemUIController = rememberSystemUiController()
     systemUIController.setStatusBarColor(Color.Transparent)
@@ -101,7 +102,7 @@ fun MainView(
         {
             BottomNavigation(
                 Modifier
-                    .wrapContentSize()
+                    .wrapContentSize().background(MaterialTheme.colorScheme.background)
                     .height(100.dp), backgroundColor = Color(0xff26662a)) {
                 screensInBottom.forEach {
                         item -> BottomNavigationItem(selected = currentRoute == item.bottomRoute, onClick = {
@@ -210,7 +211,7 @@ fun MainView(
                 .background(Color(0xff26662a))
                 .fillMaxSize())
             {
-                Column {
+                Column() {
                     Text(text = "Menu", modifier = Modifier.padding(bottom = 40.dp, start = 16.dp, top = 16.dp),
                         color = Color.White, style = MaterialTheme.typography.headlineLarge)
                     LazyColumn(Modifier.padding(45.dp))
@@ -242,7 +243,7 @@ fun MainView(
         }
     )
     {
-        Navigation(navController = navController, viewmodel = viewModel, pd = it, authorisationModel = authoriseViewModel)
+        Navigation(navController = navController, viewmodel = viewModel, pd = it, authorisationModel = authoriseViewModel, settingsViewModel = settingsViewModel)
     }
 }
 
@@ -265,7 +266,7 @@ fun DrawerState(selected: Boolean,
 }
 
 @Composable
-fun Navigation(navController: NavController, viewmodel: MainViewModel, pd:PaddingValues, authorisationModel: AuthoriseViewModel)
+fun Navigation(navController: NavController, viewmodel: MainViewModel, pd:PaddingValues, authorisationModel: AuthoriseViewModel, settingsViewModel: SettingsViewModel)
 {
     NavHost(navController = navController as NavHostController,
         startDestination = Screen.MapScreen.route, modifier = Modifier.padding(pd)) {
@@ -284,6 +285,7 @@ fun Navigation(navController: NavController, viewmodel: MainViewModel, pd:Paddin
         composable(Screen.MapScreen.route)
         {
             MapScreen(
+                settingsViewModel = settingsViewModel,
                 viewmodel = LocationViewModel(),
                 streetlightViewModel = StreetlightViewModel(streetlightRepository = StreetlightRepository())
             )
@@ -301,12 +303,13 @@ fun Navigation(navController: NavController, viewmodel: MainViewModel, pd:Paddin
         }
         composable(Screen.BottomScreen.SettingsScreen.bottomRoute)
         {
-            //TODO Settings Screen
+            SettingsScreen(settingsViewModel = settingsViewModel)
         }
         composable(Screen.BottomScreen.MapScreen.bottomRoute)
         {
             //TODO Map Screen Pop Up
             MapScreen(
+                settingsViewModel = settingsViewModel,
                 viewmodel = LocationViewModel(),
                 streetlightViewModel = StreetlightViewModel(streetlightRepository = StreetlightRepository()))
         }

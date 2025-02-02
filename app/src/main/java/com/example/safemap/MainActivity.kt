@@ -2,6 +2,7 @@ package com.example.safemap
 
 import LocationScreenView
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -9,6 +10,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -27,6 +32,7 @@ import com.example.safemap.ui.theme.SafeMapTheme
 import com.example.safemap.viewmodel.AuthoriseViewModel
 import com.example.safemap.Model.Result
 import com.example.safemap.Model.StreetlightRepository
+import com.example.safemap.View.SettingsScreen
 import com.example.safemap.viewmodel.LocationViewModel
 import com.example.safemap.viewmodel.StreetlightViewModel
 
@@ -41,7 +47,7 @@ class MainActivity : ComponentActivity() {
             val locationViewModel: LocationViewModel = viewModel()
             val locationUtilities = LocationUtilities(this)
 
-                SafeMapTheme {
+                SafeMapTheme() {
                 Surface(modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background)
                 {
@@ -77,7 +83,7 @@ fun NavigationManager(navController: NavHostController, authoriseViewModel: Auth
         {
             LocationScreenView(location = locationViewModel.location.value!!, onLocationSelected = {
                 LocationData(locationViewModel.location.value!!.latitude, locationViewModel.location.value!!.longitude)
-            })
+            }, streetlightViewModel = StreetlightViewModel(streetlightRepository = StreetlightRepository()), settingsViewModel = viewModel())
         }
         composable(Screen.LoginScreen.route)
         {
@@ -89,13 +95,14 @@ fun NavigationManager(navController: NavHostController, authoriseViewModel: Auth
         {
             MapScreen(
                 viewmodel = LocationViewModel(),
-                streetlightViewModel = StreetlightViewModel(streetlightRepository = StreetlightRepository())
+                streetlightViewModel = StreetlightViewModel(streetlightRepository = StreetlightRepository()),
+                settingsViewModel = viewModel()
             )
         }
         composable(Screen.MainView.route)
         {
             MainView(locationViewModel = locationViewModel, authoriseViewModel = authoriseViewModel, onNavigateToSignIn = {
-                navController.navigate(Screen.LoginScreen.route) })
+                navController.navigate(Screen.LoginScreen.route)})
             }
         }
 

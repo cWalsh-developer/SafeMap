@@ -7,17 +7,18 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.core.app.ActivityCompat
 import com.example.safemap.MainActivity
 import com.example.safemap.Model.LocationUtilities
 import androidx.compose.ui.platform.LocalContext
 import com.example.safemap.Model.LocationData
 import com.example.safemap.viewmodel.LocationViewModel
+import com.example.safemap.viewmodel.SettingsViewModel
 import com.example.safemap.viewmodel.StreetlightViewModel
 
 @Composable
 fun MapScreen(
+    settingsViewModel: SettingsViewModel,
     viewmodel: LocationViewModel,
     streetlightViewModel: StreetlightViewModel
 )
@@ -53,6 +54,19 @@ fun MapScreen(
                 }
             }
     )
+    if(locationUtilities.hasLocationPermission(context))
+    {
+        //Permission Granted
+        locationUtilities.requestLocationUpdates(viewModel = viewmodel)
+
+    }
+    else
+    {
+        requestPermissionPopup.launch(arrayOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        ))
+    }
     if(location == null)
     {
         Text("Loading...")
@@ -61,21 +75,7 @@ fun MapScreen(
     else{
         LocationScreenView( location = location, onLocationSelected = {
             LocationData(it.latitude, it.longitude)
-        },streetlightViewModel = streetlightViewModel)
+        },streetlightViewModel = streetlightViewModel, settingsViewModel = settingsViewModel)
     }
-    LaunchedEffect(Unit) {
-        if(locationUtilities.hasLocationPermission(context))
-        {
-            //Permission Granted
-            locationUtilities.requestLocationUpdates(viewModel = viewmodel)
+    }
 
-        }
-        else
-        {
-            requestPermissionPopup.launch(arrayOf(
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ))
-        }
-    }
-}
