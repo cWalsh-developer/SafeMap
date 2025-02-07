@@ -1,17 +1,16 @@
 package com.example.safemap.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.safemap.Model.Connection
-import com.example.safemap.Model.Result
-import com.example.safemap.Model.Result.Error
-import com.example.safemap.Model.Result.Success
-import com.example.safemap.Model.User
-import com.example.safemap.Model.UserAddresses
-import com.example.safemap.Model.UserRepository
+import com.example.safemap.model.Connection
+import com.example.safemap.model.Result
+import com.example.safemap.model.Result.Error
+import com.example.safemap.model.Result.Success
+import com.example.safemap.model.User
+import com.example.safemap.model.UserAddresses
+import com.example.safemap.model.UserRepository
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch

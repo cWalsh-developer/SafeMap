@@ -14,8 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.example.safemap.Model.User
-import com.example.safemap.Model.UserAddresses
+import com.example.safemap.model.User
+import com.example.safemap.model.UserAddresses
 import com.example.safemap.R
 import com.example.safemap.viewmodel.AuthoriseViewModel
 

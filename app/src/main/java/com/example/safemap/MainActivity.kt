@@ -1,8 +1,10 @@
+@file:Suppress("UNREACHABLE_CODE")
+
 package com.example.safemap
 
 import LocationScreenView
+import android.content.pm.PackageManager
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -15,14 +17,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.safemap.Model.LocationData
-import com.example.safemap.Model.LocationUtilities
+import com.example.safemap.model.LocationData
+import com.example.safemap.model.LocationUtilities
 import com.example.safemap.View.MainView
 import com.example.safemap.View.LoginScreen
 import com.example.safemap.View.MapScreen
@@ -30,11 +33,12 @@ import com.example.safemap.View.Screen
 import com.example.safemap.View.SignUpScreen
 import com.example.safemap.ui.theme.SafeMapTheme
 import com.example.safemap.viewmodel.AuthoriseViewModel
-import com.example.safemap.Model.Result
-import com.example.safemap.Model.StreetlightRepository
-import com.example.safemap.View.SettingsScreen
+import com.example.safemap.model.Result
+import com.example.safemap.model.StreetlightRepository
 import com.example.safemap.viewmodel.LocationViewModel
 import com.example.safemap.viewmodel.StreetlightViewModel
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.model.DirectionsResult
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,12 +50,21 @@ class MainActivity : ComponentActivity() {
             val authoriseViewModel: AuthoriseViewModel = viewModel()
             val locationViewModel: LocationViewModel = viewModel()
             val locationUtilities = LocationUtilities(this)
+            var destinationCoordinates by remember { mutableStateOf<LatLng?>(null) }
+            var directionResult by remember { mutableStateOf<DirectionsResult?>(null) }
 
                 SafeMapTheme() {
                 Surface(modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background)
                 {
-                    NavigationManager(navController, authoriseViewModel, locationViewModel, locationUtilities)
+                    NavigationManager(navController,
+                        authoriseViewModel,
+                        locationViewModel,
+                        locationUtilities,
+                        destinationCoordinates,
+                        directionResult,
+                        getAPIKey()
+                    )
                 }
             }
         }
@@ -59,8 +72,24 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun NavigationManager(navController: NavHostController, authoriseViewModel: AuthoriseViewModel, locationViewModel: LocationViewModel,
-                      locationUtilities: LocationUtilities) {
+fun getAPIKey(): String {
+    val appInfo = LocalContext.current.packageManager.getApplicationInfo(
+        LocalContext.current.packageName,
+        PackageManager.GET_META_DATA
+    )
+    return appInfo.metaData.getString("com.google.android.geo.API_KEY") ?: ""
+}
+
+@Composable
+fun NavigationManager(
+    navController: NavHostController,
+    authoriseViewModel: AuthoriseViewModel,
+    locationViewModel: LocationViewModel,
+    locationUtilities: LocationUtilities,
+    destinationCoordinates: LatLng?,
+    directionResult: DirectionsResult?,
+    apiKey: String
+) {
     NavHost(
         navController, startDestination =
             if(AuthoriseViewModel().checkStatus() == Result.Success(true))
@@ -81,9 +110,19 @@ fun NavigationManager(navController: NavHostController, authoriseViewModel: Auth
         }
         composable(Screen.LocationScreen.route)
         {
-            LocationScreenView(location = locationViewModel.location.value!!, onLocationSelected = {
-                LocationData(locationViewModel.location.value!!.latitude, locationViewModel.location.value!!.longitude)
-            }, streetlightViewModel = StreetlightViewModel(streetlightRepository = StreetlightRepository()), settingsViewModel = viewModel())
+            LocationScreenView(
+                location = locationViewModel.location.value!!,
+                onLocationSelected = {
+                    LocationData(
+                        locationViewModel.location.value!!.latitude,
+                        locationViewModel.location.value!!.longitude
+                    )
+                },
+                streetlightViewModel = StreetlightViewModel(streetlightRepository = StreetlightRepository()),
+                settingsViewModel = viewModel(),
+                destinationCoordinates = destinationCoordinates,
+                directionsResult = directionResult
+            )
         }
         composable(Screen.LoginScreen.route)
         {
@@ -96,13 +135,16 @@ fun NavigationManager(navController: NavHostController, authoriseViewModel: Auth
             MapScreen(
                 viewmodel = LocationViewModel(),
                 streetlightViewModel = StreetlightViewModel(streetlightRepository = StreetlightRepository()),
-                settingsViewModel = viewModel()
+                settingsViewModel = viewModel(),
+                destinationCoordinates = destinationCoordinates,
+                directionResult = directionResult
             )
         }
         composable(Screen.MainView.route)
         {
             MainView(locationViewModel = locationViewModel, authoriseViewModel = authoriseViewModel, onNavigateToSignIn = {
-                navController.navigate(Screen.LoginScreen.route)})
+                navController.navigate(Screen.LoginScreen.route)},
+                apiKey = apiKey)
             }
         }
 

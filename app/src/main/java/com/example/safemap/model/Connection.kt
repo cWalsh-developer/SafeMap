@@ -1,4 +1,4 @@
-package com.example.safemap.Model
+package com.example.safemap.model
 
 import com.google.firebase.firestore.FirebaseFirestore
 

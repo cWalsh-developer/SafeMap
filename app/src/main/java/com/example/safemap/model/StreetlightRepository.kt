@@ -1,4 +1,4 @@
-package com.example.safemap.Model
+package com.example.safemap.model
 
 import android.util.Log
 import com.google.gson.Gson

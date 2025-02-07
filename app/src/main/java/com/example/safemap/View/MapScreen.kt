@@ -9,18 +9,22 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.core.app.ActivityCompat
 import com.example.safemap.MainActivity
-import com.example.safemap.Model.LocationUtilities
+import com.example.safemap.model.LocationUtilities
 import androidx.compose.ui.platform.LocalContext
-import com.example.safemap.Model.LocationData
+import com.example.safemap.model.LocationData
 import com.example.safemap.viewmodel.LocationViewModel
 import com.example.safemap.viewmodel.SettingsViewModel
 import com.example.safemap.viewmodel.StreetlightViewModel
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.model.DirectionsResult
 
 @Composable
 fun MapScreen(
     settingsViewModel: SettingsViewModel,
     viewmodel: LocationViewModel,
-    streetlightViewModel: StreetlightViewModel
+    streetlightViewModel: StreetlightViewModel,
+    destinationCoordinates: LatLng?,
+    directionResult: DirectionsResult?
 )
 {
     val context = LocalContext.current
@@ -73,9 +77,12 @@ fun MapScreen(
         locationUtilities.requestLocationUpdates(viewModel = viewmodel)
     }
     else{
-        LocationScreenView( location = location, onLocationSelected = {
+        LocationScreenView(
+            destinationCoordinates = destinationCoordinates,
+            location = location, onLocationSelected = {
             LocationData(it.latitude, it.longitude)
-        },streetlightViewModel = streetlightViewModel, settingsViewModel = settingsViewModel)
+        },streetlightViewModel = streetlightViewModel, settingsViewModel = settingsViewModel,
+        directionsResult = directionResult)
     }
     }
 

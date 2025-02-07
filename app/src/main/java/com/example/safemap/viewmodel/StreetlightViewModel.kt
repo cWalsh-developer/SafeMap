@@ -4,8 +4,8 @@ package com.example.safemap.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.safemap.Model.Streetlight
-import com.example.safemap.Model.StreetlightRepository
+import com.example.safemap.model.Streetlight
+import com.example.safemap.model.StreetlightRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

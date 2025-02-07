@@ -2,7 +2,10 @@
 package com.example.safemap.View
 
 
+import android.os.Build
+import android.util.Log
 import androidx.activity.compose.BackHandler
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -30,6 +33,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.SearchBar
@@ -39,6 +43,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,22 +62,28 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.safemap.viewmodel.AuthoriseViewModel
 import kotlinx.coroutines.CoroutineScope
-import com.example.safemap.Model.Result
-import com.example.safemap.Model.StreetlightRepository
+import com.example.safemap.model.Result
+import com.example.safemap.model.StreetlightRepository
 import com.example.safemap.R
+import com.example.safemap.model.Directions
+import com.example.safemap.model.Geocoder
 import com.example.safemap.viewmodel.LocationViewModel
 import com.example.safemap.viewmodel.MainViewModel
 import com.example.safemap.viewmodel.SettingsViewModel
 import com.example.safemap.viewmodel.StreetlightViewModel
 import kotlinx.coroutines.launch
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.model.DirectionsResult
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainView(
     locationViewModel: LocationViewModel,
     authoriseViewModel: AuthoriseViewModel,
     onNavigateToSignIn: () -> Unit,
+    apiKey: String
 )
 {
     val scaffoldState: ScaffoldState = rememberScaffoldState()
@@ -88,6 +99,18 @@ fun MainView(
     var active by remember { mutableStateOf(false) }
     var pad = 85.dp
 
+    //Geocoding stateholders
+    var destinationCoordinates by remember { mutableStateOf<LatLng?>(null) }
+    var directionResult by remember { mutableStateOf<DirectionsResult?>(null) }
+    var eta by remember { mutableStateOf("") }
+    var duration by remember { mutableStateOf("") }
+
+    val geocoder = remember {Geocoder(apiKey)}
+    val directions = remember { Directions(apiKey) }
+
+    var userLocation by remember { mutableStateOf(locationViewModel.location.value?.let { LatLng(
+        locationViewModel.location.value!!.latitude, it.longitude) }) }
+
     val currentScreen = remember{
         viewModel.currentScreen.value
     }
@@ -96,6 +119,27 @@ fun MainView(
 
     val systemUIController = rememberSystemUiController()
     systemUIController.setStatusBarColor(Color.Transparent)
+
+    LaunchedEffect(destinationCoordinates) {
+        if(destinationCoordinates != null)
+        {
+            userLocation?.let {
+                directions.getWalkingDirections(it, destinationCoordinates!!){ result ->
+                    directionResult = result
+                }
+            }
+        }
+    }
+
+    LaunchedEffect(directionResult) {
+        if(directionResult != null)
+        {
+            eta = directions.calculateETA(directionResult)
+            duration = directionResult!!.routes[0].legs[0].duration.humanReadable
+            Log.d("Directions", "ETA: $eta")
+            Log.d("Directions", "Duration: $duration")
+        }
+        }
 
     val bottomBar: @Composable () -> Unit = {
         if(currentScreen is Screen.DrawerScreenHandler || currentScreen is Screen.MapScreen)
@@ -142,8 +186,19 @@ fun MainView(
                         },
                         onSearch = {
                             active = false
-                            // Perform search here
-                            println("Search query: $text")
+                            geocoder.geocodeAddress(text){
+                                    result ->
+                                if(result != null)
+                                {
+                                    destinationCoordinates = LatLng(result.geometry.location.lat,
+                                        result.geometry.location.lng)
+                                }
+                                else
+                                {
+                                    Log.d("Searching:", "Geocoding failed for $text")
+                                    destinationCoordinates = null
+                                }
+                            }
                         },
                         active = active,
                         onActiveChange = { active = it
@@ -156,7 +211,7 @@ fun MainView(
                                     Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                                 }
                             } else {
-                                Icon(imageVector = Icons.Default.Menu, contentDescription = "Search")
+                                Icon(imageVector = Icons.Default.Search, contentDescription = "Search")
                             }
                         },
                         trailingIcon = {
@@ -243,7 +298,8 @@ fun MainView(
         }
     )
     {
-        Navigation(navController = navController, viewmodel = viewModel, pd = it, authorisationModel = authoriseViewModel, settingsViewModel = settingsViewModel)
+        Navigation(navController = navController, viewmodel = viewModel, pd = it, authorisationModel = authoriseViewModel, settingsViewModel = settingsViewModel,
+            destinationCoordinates, directionResult)
     }
 }
 
@@ -266,7 +322,8 @@ fun DrawerState(selected: Boolean,
 }
 
 @Composable
-fun Navigation(navController: NavController, viewmodel: MainViewModel, pd:PaddingValues, authorisationModel: AuthoriseViewModel, settingsViewModel: SettingsViewModel)
+fun Navigation(navController: NavController, viewmodel: MainViewModel, pd:PaddingValues, authorisationModel: AuthoriseViewModel, settingsViewModel: SettingsViewModel,
+               destinationCoordinates: LatLng?, directionResult: DirectionsResult?)
 {
     NavHost(navController = navController as NavHostController,
         startDestination = Screen.MapScreen.route, modifier = Modifier.padding(pd)) {
@@ -287,7 +344,10 @@ fun Navigation(navController: NavController, viewmodel: MainViewModel, pd:Paddin
             MapScreen(
                 settingsViewModel = settingsViewModel,
                 viewmodel = LocationViewModel(),
-                streetlightViewModel = StreetlightViewModel(streetlightRepository = StreetlightRepository())
+                streetlightViewModel = StreetlightViewModel(
+                    streetlightRepository = StreetlightRepository()),
+                destinationCoordinates = destinationCoordinates,
+                directionResult = directionResult
             )
         }
         composable(Screen.MedicalScreen.route)
@@ -307,11 +367,12 @@ fun Navigation(navController: NavController, viewmodel: MainViewModel, pd:Paddin
         }
         composable(Screen.BottomScreen.MapScreen.bottomRoute)
         {
-            //TODO Map Screen Pop Up
             MapScreen(
                 settingsViewModel = settingsViewModel,
                 viewmodel = LocationViewModel(),
-                streetlightViewModel = StreetlightViewModel(streetlightRepository = StreetlightRepository()))
+                streetlightViewModel = StreetlightViewModel(streetlightRepository = StreetlightRepository()),
+                destinationCoordinates = destinationCoordinates,
+                directionResult =    directionResult)
         }
     }
 }

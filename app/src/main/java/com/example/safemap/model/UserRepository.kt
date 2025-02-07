@@ -1,8 +1,8 @@
-package com.example.safemap.Model
+package com.example.safemap.model
 
 
 import android.util.Log
-import com.example.safemap.Model.Result.*
+import com.example.safemap.model.Result.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
