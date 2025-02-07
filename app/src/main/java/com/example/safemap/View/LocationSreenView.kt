@@ -54,70 +54,69 @@ fun LocationScreenView(
 
     // Define the zoom threshold for rendering streetlights
     val minimumZoomForStreetlights = 14.7f
+    Box(modifier = Modifier.fillMaxSize())
+    {
+        GoogleMap(
+            modifier = Modifier.fillMaxSize(),
+            cameraPositionState = cameraPositionState,
+            onMapClick = {
+                userLocation.value = it
+            },
 
-        Box(modifier = Modifier.fillMaxSize())
-        {
-            GoogleMap(
-                modifier = Modifier.fillMaxSize(),
-                cameraPositionState = cameraPositionState,
-                onMapClick = {
-                    userLocation.value = it
-                },
+            ) {
+            // User location marker
+            Marker(state = MarkerState(position = userLocation.value))
 
-                ) {
-                // User location marker
-                Marker(state = MarkerState(position = userLocation.value))
+            if(destinationCoordinates !=null)
+            {
+                Marker(state = MarkerState(position = destinationCoordinates))
+                Polyline(points = listOf(userLocation.value, destinationCoordinates), color = androidx.compose.ui.graphics.Color.Red)
+            }
 
-                if(destinationCoordinates !=null)
-                {
-                    Marker(state = MarkerState(position = destinationCoordinates))
-                    Polyline(points = listOf(userLocation.value, destinationCoordinates), color = androidx.compose.ui.graphics.Color.Red)
-                }
-
-                // Update selected location callback
-                onLocationSelected(
-                    LocationData(
-                        userLocation.value.latitude,
-                        userLocation.value.longitude
-                    )
+            // Update selected location callback
+            onLocationSelected(
+                LocationData(
+                    userLocation.value.latitude,
+                    userLocation.value.longitude
                 )
-                if (streetlightEnabled) {
-                    // Check if the zoom level is above the threshold
-                    if (cameraPositionState.position.zoom >= minimumZoomForStreetlights) {
-                        // Get visible bounds from camera state
-                        val visibleBounds = cameraPositionState.projection?.visibleRegion?.latLngBounds
+            )
+            if (streetlightEnabled) {
+                // Check if the zoom level is above the threshold
+                if (cameraPositionState.position.zoom >= minimumZoomForStreetlights) {
+                    // Get visible bounds from camera state
+                    val visibleBounds = cameraPositionState.projection?.visibleRegion?.latLngBounds
 
-                        // Render markers only within visible bounds
-                        visibleBounds?.let { bounds ->
-                            streetlightIcon?.let { icon ->
-                                streetlights.filter {
-                                    bounds.contains(
-                                        LatLng(
-                                            it.latitude,
-                                            it.longitude
-                                        )
+                    // Render markers only within visible bounds
+                    visibleBounds?.let { bounds ->
+                        streetlightIcon?.let { icon ->
+                            streetlights.filter {
+                                bounds.contains(
+                                    LatLng(
+                                        it.latitude,
+                                        it.longitude
+                                    )
+                                )
+                            }
+                                .forEach { streetlight ->
+                                    Marker(
+                                        state = MarkerState(
+                                            position = LatLng(
+                                                streetlight.latitude,
+                                                streetlight.longitude
+                                            )
+                                        ),
+                                        title = streetlight.id,
+                                        snippet = "Leaflet Style ${streetlight.leafletStyle}, Borough: ${streetlight.borough}",
+                                        icon = icon
                                     )
                                 }
-                                    .forEach { streetlight ->
-                                        Marker(
-                                            state = MarkerState(
-                                                position = LatLng(
-                                                    streetlight.latitude,
-                                                    streetlight.longitude
-                                                )
-                                            ),
-                                            title = streetlight.id,
-                                            snippet = "Leaflet Style ${streetlight.leafletStyle}, Borough: ${streetlight.borough}",
-                                            icon = icon
-                                        )
-                                    }
-                            }
                         }
                     }
-
                 }
+
             }
         }
+    }
 
 }
 
