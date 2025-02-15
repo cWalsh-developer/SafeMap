@@ -52,6 +52,7 @@ class MainActivity : ComponentActivity() {
             val locationUtilities = LocationUtilities(this)
             var destinationCoordinates by remember { mutableStateOf<LatLng?>(null) }
             var directionResult by remember { mutableStateOf<DirectionsResult?>(null) }
+            var polylinePoints by remember { mutableStateOf<List<LatLng>?>(null) }
 
                 SafeMapTheme() {
                 Surface(modifier = Modifier.fillMaxSize(),
@@ -63,7 +64,8 @@ class MainActivity : ComponentActivity() {
                         locationUtilities,
                         destinationCoordinates,
                         directionResult,
-                        getAPIKey()
+                        getAPIKey(),
+                        polylinePoints
                     )
                 }
             }
@@ -88,7 +90,8 @@ fun NavigationManager(
     locationUtilities: LocationUtilities,
     destinationCoordinates: LatLng?,
     directionResult: DirectionsResult?,
-    apiKey: String
+    apiKey: String,
+    polylinePoints: List<LatLng>?
 ) {
     NavHost(
         navController, startDestination =
@@ -121,7 +124,7 @@ fun NavigationManager(
                 streetlightViewModel = StreetlightViewModel(streetlightRepository = StreetlightRepository()),
                 settingsViewModel = viewModel(),
                 destinationCoordinates = destinationCoordinates,
-                directionsResult = directionResult
+                apiKey = apiKey
             )
         }
         composable(Screen.LoginScreen.route)
@@ -137,7 +140,7 @@ fun NavigationManager(
                 streetlightViewModel = StreetlightViewModel(streetlightRepository = StreetlightRepository()),
                 settingsViewModel = viewModel(),
                 destinationCoordinates = destinationCoordinates,
-                directionResult = directionResult
+                apiKey = apiKey
             )
         }
         composable(Screen.MainView.route)

@@ -106,10 +106,7 @@ fun MainView(
     var duration by remember { mutableStateOf("") }
 
     val geocoder = remember {Geocoder(apiKey)}
-    val directions = remember { Directions(apiKey) }
 
-    var userLocation by remember { mutableStateOf(locationViewModel.location.value?.let { LatLng(
-        locationViewModel.location.value!!.latitude, it.longitude) }) }
 
     val currentScreen = remember{
         viewModel.currentScreen.value
@@ -119,28 +116,6 @@ fun MainView(
 
     val systemUIController = rememberSystemUiController()
     systemUIController.setStatusBarColor(Color.Transparent)
-
-    LaunchedEffect(destinationCoordinates) {
-        if(destinationCoordinates != null)
-        {
-            userLocation?.let {
-                directions.getWalkingDirections(it, destinationCoordinates!!){ result ->
-                    directionResult = result
-                }
-            }
-        }
-    }
-
-    LaunchedEffect(directionResult) {
-        if(directionResult != null)
-        {
-            eta = directions.calculateETA(directionResult)
-            duration = directionResult!!.routes[0].legs[0].duration.humanReadable
-            Log.d("Directions", "ETA: $eta")
-            Log.d("Directions", "Duration: $duration")
-        }
-        }
-
     val bottomBar: @Composable () -> Unit = {
         if(currentScreen is Screen.DrawerScreenHandler || currentScreen is Screen.MapScreen)
         {
@@ -299,7 +274,7 @@ fun MainView(
     )
     {
         Navigation(navController = navController, viewmodel = viewModel, pd = it, authorisationModel = authoriseViewModel, settingsViewModel = settingsViewModel,
-            destinationCoordinates, directionResult)
+            destinationCoordinates, apiKey)
     }
 }
 
@@ -323,7 +298,7 @@ fun DrawerState(selected: Boolean,
 
 @Composable
 fun Navigation(navController: NavController, viewmodel: MainViewModel, pd:PaddingValues, authorisationModel: AuthoriseViewModel, settingsViewModel: SettingsViewModel,
-               destinationCoordinates: LatLng?, directionResult: DirectionsResult?)
+               destinationCoordinates: LatLng?, apiKey: String)
 {
     NavHost(navController = navController as NavHostController,
         startDestination = Screen.MapScreen.route, modifier = Modifier.padding(pd)) {
@@ -347,7 +322,7 @@ fun Navigation(navController: NavController, viewmodel: MainViewModel, pd:Paddin
                 streetlightViewModel = StreetlightViewModel(
                     streetlightRepository = StreetlightRepository()),
                 destinationCoordinates = destinationCoordinates,
-                directionResult = directionResult
+                apiKey = apiKey
             )
         }
         composable(Screen.MedicalScreen.route)
@@ -372,7 +347,7 @@ fun Navigation(navController: NavController, viewmodel: MainViewModel, pd:Paddin
                 viewmodel = LocationViewModel(),
                 streetlightViewModel = StreetlightViewModel(streetlightRepository = StreetlightRepository()),
                 destinationCoordinates = destinationCoordinates,
-                directionResult =    directionResult)
+                apiKey = apiKey)
         }
     }
 }

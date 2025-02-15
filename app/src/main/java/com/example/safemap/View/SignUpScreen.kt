@@ -207,6 +207,13 @@ import com.example.safemap.model.Result
                         firstName = ""
                         lastName = ""
                         telephone = ""
+                        addressLine1 = ""
+                        addressLine2 = ""
+                        townCity = ""
+                        county = ""
+                        country = ""
+                        postcode = ""
+                        onNavigateToSignIn()
                     }
                 },
                 modifier = Modifier

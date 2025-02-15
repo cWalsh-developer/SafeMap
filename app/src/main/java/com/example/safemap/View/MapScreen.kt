@@ -7,6 +7,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.core.app.ActivityCompat
 import com.example.safemap.MainActivity
 import com.example.safemap.model.LocationUtilities
@@ -16,7 +17,6 @@ import com.example.safemap.viewmodel.LocationViewModel
 import com.example.safemap.viewmodel.SettingsViewModel
 import com.example.safemap.viewmodel.StreetlightViewModel
 import com.google.android.gms.maps.model.LatLng
-import com.google.maps.model.DirectionsResult
 
 @Composable
 fun MapScreen(
@@ -24,7 +24,7 @@ fun MapScreen(
     viewmodel: LocationViewModel,
     streetlightViewModel: StreetlightViewModel,
     destinationCoordinates: LatLng?,
-    directionResult: DirectionsResult?
+    apiKey: String
 )
 {
     val context = LocalContext.current
@@ -58,19 +58,6 @@ fun MapScreen(
                 }
             }
     )
-    if(locationUtilities.hasLocationPermission(context))
-    {
-        //Permission Granted
-        locationUtilities.requestLocationUpdates(viewModel = viewmodel)
-
-    }
-    else
-    {
-        requestPermissionPopup.launch(arrayOf(
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION
-        ))
-    }
     if(location == null)
     {
         Text("Loading...")
@@ -82,7 +69,22 @@ fun MapScreen(
             location = location, onLocationSelected = {
             LocationData(it.latitude, it.longitude)
         },streetlightViewModel = streetlightViewModel, settingsViewModel = settingsViewModel,
-        directionsResult = directionResult)
+            apiKey = apiKey)
+    }
+    LaunchedEffect(Unit) {
+        if(locationUtilities.hasLocationPermission(context))
+        {
+            //Permission Granted
+            locationUtilities.requestLocationUpdates(viewModel = viewmodel)
+
+        }
+        else
+        {
+            requestPermissionPopup.launch(arrayOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ))
+        }
     }
     }
 

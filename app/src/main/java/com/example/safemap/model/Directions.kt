@@ -22,7 +22,7 @@ class Directions(private val apiKey: String) {
 
     fun getWalkingDirections(origin: LatLng,
                              destination: LatLng,
-                             onResult: (DirectionsResult?) -> Unit)
+                             onResult: (DirectionsResult?, List<LatLng>?) -> Unit)
     {
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -32,9 +32,14 @@ class Directions(private val apiKey: String) {
                     .mode(TravelMode.WALKING)
 
                 val result: DirectionsResult = request.await()
+                val polyline = if (result.routes.isNotEmpty()) {
+                    PolylineUtils.decodePolyline(result.routes[0].overviewPolyline.encodedPath)
+                } else {
+                    emptyList()
+                }
                 withContext(Dispatchers.Main)
                 {
-                    onResult(result)
+                    onResult(result, polyline)
                 }
             }
             catch (e: Exception)
@@ -42,8 +47,8 @@ class Directions(private val apiKey: String) {
                 Log.d("Directions", "Error getting walking directions", e)
                 withContext(Dispatchers.Main)
                 {
-                    onResult(null)
-            }
+                    onResult(null, null)
+                }
             }
         }
     }
