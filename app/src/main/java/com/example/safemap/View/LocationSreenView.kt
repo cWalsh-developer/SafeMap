@@ -56,7 +56,7 @@ fun LocationScreenView(
     LaunchedEffect(Unit) {
         if (streetlightEnabled) {
             streetlightIcon = bitmapDescriptorFromPng(context, R.drawable.streetlight_image)
-        userLocationIcon = bitmapDescriptorFromPng(context, R.drawable.user_location)
+            userLocationIcon = bitmapDescriptorFromPng(context, R.drawable.user_location)
             streetlightViewModel.loadStreetlights()
         }
     }
