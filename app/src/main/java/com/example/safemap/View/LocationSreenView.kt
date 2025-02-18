@@ -18,7 +18,6 @@ import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.PolylineOptions
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
@@ -51,11 +50,13 @@ fun LocationScreenView(
 
     val context = LocalContext.current
     var streetlightIcon by remember { mutableStateOf<BitmapDescriptor?>(null) }
+    var userLocationIcon by remember { mutableStateOf<BitmapDescriptor?>(null) }
 
     // Load streetlights data
     LaunchedEffect(Unit) {
         if (streetlightEnabled) {
             streetlightIcon = bitmapDescriptorFromPng(context, R.drawable.streetlight_image)
+        userLocationIcon = bitmapDescriptorFromPng(context, R.drawable.user_location)
             streetlightViewModel.loadStreetlights()
         }
     }
@@ -73,7 +74,10 @@ fun LocationScreenView(
 
             ) {
             // User location marker
-            Marker(state = MarkerState(position = userLocation.value), snippet = "You are here")
+            Marker(state = MarkerState(position = userLocation.value),
+                title = "Your Location",
+                snippet = "You are here",
+                icon = userLocationIcon)
 
             if (destinationCoordinates != null) {
                 Marker(state = MarkerState(position = destinationCoordinates))
