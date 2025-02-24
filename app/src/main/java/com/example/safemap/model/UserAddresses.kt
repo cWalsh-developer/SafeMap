@@ -1,10 +1,10 @@
 package com.example.safemap.model
 
 data class UserAddresses(
-    val addressLine1: String = "",
-    val addressLine2: String = "",
-    val townCity: String = "",
-    val county: String = "",
-    val country: String = "",
-    val postCode: String = "",
+    var addressLine1: String = "",
+    var addressLine2: String = "",
+    var townCity: String = "",
+    var county: String = "",
+    var country: String = "",
+    var postCode: String = "",
     val userID: String = "")

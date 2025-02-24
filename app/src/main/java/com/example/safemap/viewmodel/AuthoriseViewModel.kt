@@ -79,6 +79,19 @@ class AuthoriseViewModel : ViewModel() {
 
     }
 
+    fun updateProfile(user: User, address: UserAddresses)
+    {
+        viewModelScope.launch {
+            try {
+                val result = userRepository.updateProfile(user, address)
+                _authorisationResultHolder.postValue(result)
+            } catch (e: Exception) {
+                _authorisationResultHolder.postValue(Error(e))
+            }
+
+        }
+    }
+
     fun checkStatus(): Result<Boolean> =
         if (FirebaseAuth.getInstance().currentUser != null) {
             Success(true)

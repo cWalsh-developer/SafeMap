@@ -64,6 +64,18 @@ class UserRepository(private val auth: FirebaseAuth,
         return userData
     }
 
+    suspend fun updateProfile(user: User, address: UserAddresses): Result<Boolean> =
+        try
+        {
+            firestore.collection("users").document(auth.currentUser!!.uid).set(userData).await()
+            firestore.collection("users").document(auth.currentUser!!.uid).collection("addresses").add(address).await()
+            auth.currentUser!!.verifyBeforeUpdateEmail(user.email).await()
+            Success(true)
+        }catch (e: Exception)
+        {
+            Error(e)
+        }
+
     suspend fun loadAddress(): UserAddresses? {
         if (auth.currentUser != null) {
             return suspendCoroutine { continuation ->
