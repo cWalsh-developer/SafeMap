@@ -3,6 +3,8 @@ package com.example.safemap.model
 import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.JsonObject
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.SphericalUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.locationtech.proj4j.CRSFactory
@@ -10,6 +12,12 @@ import org.locationtech.proj4j.CoordinateTransformFactory
 import org.locationtech.proj4j.ProjCoordinate
 import java.net.HttpURLConnection
 import java.net.URL
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.exp
+import kotlin.math.pow
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 class StreetlightRepository {
     private val baseUrl = "https://kingston.statmap.co.uk/map/wfs.svc/customer_platform_prod_wfs"
@@ -91,5 +99,144 @@ class StreetlightRepository {
 
         // Return the latitude and longitude
         return Pair(destCoord.y, destCoord.x)
+    }
+
+    private fun calculateStreetlightDensity(routePolyline: String, streetlights: List<Streetlight>,
+                                    bufferRadiusMeters: Double = 50.0, segmentLengtheMeters: Double = 10.0): List<Pair<LatLng, Double>>
+    {
+        val routePoints = PolylineUtils.decodePolyline(routePolyline)
+        val segments = divideRouteIntoSegments(routePoints, segmentLengtheMeters)
+        val streetlightDensity = mutableListOf<Pair<LatLng, Double>>()
+
+        for (segment in segments)
+        {
+            val bufferCenter = segment.first
+            val streetlightsInRadius = streetlights.count{
+                streetlight -> isPointInCircle(LatLng(streetlight.latitude,
+                streetlight.longitude),bufferCenter, bufferRadiusMeters)
+            }
+            val segmentLength = calculateSegmentLength(segment)
+
+            val density = if(segmentLength > 0)
+            {
+                streetlightsInRadius.toDouble() / segmentLength
+            }
+            else
+            {
+                0.0
+            }
+
+            val weight1 = 0.6
+            val weight2 = 0.4
+            val weightedDensity = (weight1 * density) + (weight2 * streetlightsInRadius)
+
+            streetlightDensity.add(Pair(bufferCenter, weightedDensity))
+
+        }
+        return streetlightDensity
+    }
+
+    private fun calculateSegmentLength(segment: Pair<LatLng, LatLng>): Double
+    {
+        val segmentPoints = listOf(segment.first, segment.second)
+        return SphericalUtil.computeLength(segmentPoints)
+    }
+
+    private fun divideRouteIntoSegments(routePoints: List<LatLng>, segmentLengthMeters: Double): List<Pair<LatLng, LatLng>>
+    {
+        val segments = mutableListOf<Pair<LatLng, LatLng>>()
+        for(i in 0 until routePoints.size - 1)
+        {
+            val startPoint = routePoints[i]
+            val endPoint = routePoints[i + 1]
+            val distance = calculateDistance(startPoint, endPoint)
+            val numSegments = (distance / segmentLengthMeters).toInt()
+
+            if(numSegments > 0)
+            {
+                for(j in 0 until numSegments)
+                {
+                    val fraction = (j+1).toDouble() / (numSegments).toDouble()
+                    val intermediatePoint = interpolatePoint(startPoint, endPoint, fraction)
+                    segments.add(Pair(startPoint, intermediatePoint))
+                }
+            }
+            else
+            {
+                segments.add(Pair(startPoint, endPoint))
+
+            }
+        }
+        return segments
+    }
+
+    private fun isPointInCircle(point: LatLng, circleCenter: LatLng, radiusMeters: Double): Boolean
+    {
+        val distance = calculateDistance(point, circleCenter)
+        return distance <= radiusMeters
+    }
+
+    private fun calculateDistance(point1: LatLng, point2: LatLng): Double
+    {
+        val earthRadius = 6371000.0
+        val lat1Rad = Math.toRadians(point1.latitude)
+        val lon1Rad = Math.toRadians(point1.longitude)
+        val lat2Rad = Math.toRadians(point2.latitude)
+        val lon2Rad = Math.toRadians(point2.longitude)
+
+        val deltaLat = lat2Rad - lat1Rad
+        val deltaLon = lon2Rad - lon1Rad
+
+        val a = sin(deltaLat / 2).pow(2) +
+                cos(lat1Rad) *
+                cos(lat2Rad) *
+                sin(deltaLon / 2).pow(2)
+        val c = 2 * atan2(sqrt(a), sqrt(1 - a))
+
+        return earthRadius * c
+    }
+
+    private fun interpolatePoint(start: LatLng, end: LatLng, fraction: Double): LatLng
+    {
+        val lat = start.latitude + (end.latitude - start.latitude) * fraction
+        val lng = start.longitude + (end.longitude - start.longitude) * fraction
+        return LatLng(lat, lng)
+    }
+
+    fun chooseBestRoute(routes: List<String>,
+                        streetlights: List<Streetlight>,
+                        bufferRadiusMeters: Double = 50.0,
+                        segmentLengthMeters: Double = 10.0): String{
+        var bestRoute =""
+        var bestDensity = Double.MAX_VALUE
+
+        for(routePolyline in routes)
+        {
+            val segmentDensities = calculateStreetlightDensity(routePolyline,
+                streetlights,
+                bufferRadiusMeters,
+                segmentLengthMeters)
+            val routePenalty = calculateRoutePenalty(segmentDensities)
+
+            if(routePenalty < bestDensity)
+            {
+                bestDensity = routePenalty
+                bestRoute = routePolyline
+            }
+        }
+        return bestRoute
+    }
+
+    private fun calculateRoutePenalty(segmentDensities: List<Pair<LatLng, Double>>): Double
+    {
+        var totalPenalty = 0.0
+
+        for((_, density) in segmentDensities)
+        {
+            val k = 5.0
+            val segmentPenalty = 100 * exp(-density * k)
+            totalPenalty += segmentPenalty
+        }
+        return totalPenalty
     }
 }

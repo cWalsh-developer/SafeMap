@@ -71,7 +71,7 @@ fun MapScreen(
         },streetlightViewModel = streetlightViewModel, settingsViewModel = settingsViewModel,
             apiKey = apiKey)
     }
-    LaunchedEffect(Unit) {
+    LaunchedEffect(locationUtilities.hasLocationPermission(context)) {
         if(locationUtilities.hasLocationPermission(context))
         {
             //Permission Granted

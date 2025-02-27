@@ -15,6 +15,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,7 +37,8 @@ fun EditDialog(onDismiss: () -> Unit,
                onConfirm: () -> Unit, authorisationModel: AuthoriseViewModel
 )
 {
-
+    var confirmDialog by remember { mutableStateOf(false) }
+    val originalEmail = userInfo.email
     val scrollState = rememberScrollState()
     val userFields = listOf(
         "First Name" to userInfo.firstName,
@@ -54,69 +56,90 @@ fun EditDialog(onDismiss: () -> Unit,
         "Post Code" to addressInfo.postCode
     ).filter { it.second != null }
 
-    Dialog(onDismissRequest = onDismiss,
-        content ={
-            Surface(
-                shape = RoundedCornerShape(16.dp),
-                color = Color.White
-            ) {
-                Column(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth().verticalScroll(scrollState),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+    if(confirmDialog) {
+        ConfirmDialog(onDismiss = { confirmDialog = false },
+            userInfo = userInfo,
+            addressInfo = addressInfo,
+            authorisationModel = authorisationModel,
+            onConfirm = {
+                confirmDialog = false
+                onConfirm()
+            })
+    }
+    else
+    {
+        Dialog(onDismissRequest = onDismiss,
+            content ={
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = Color.White
                 ) {
-                    Text(
-                        text = "Edit Profile",
-                        color = Color(0xff26662a),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-
-                    (userFields + addressFields).forEach { (label, value) ->
-                        var newValue by remember { mutableStateOf(value) }
-                        OutlinedTextField(
-                            value = newValue!!,
-                            onValueChange = { newValue = it },
-                            label = { Text(label, color = Color(0xff26662a)) },
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = Color(0xff26662a),
-                                focusedLabelColor = Color(0xff26662a),
-                                unfocusedTextColor = Color.Black,
-                                focusedTextColor = Color.Black,
-                            )
+                    Column(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxWidth().verticalScroll(scrollState),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Text(
+                            text = "Edit Profile",
+                            color = Color(0xff26662a),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
                         )
-                        userFields.forEach {
-                            if (it.first == label) {
-                                when (it.first) {
-                                    "First Name" -> userInfo.firstName = newValue!!
-                                    "Last Name" -> userInfo.lastName = newValue!!
-                                    "Email" -> userInfo.email = newValue!!
-                                    "Telephone" -> userInfo.telephone = newValue!!
+
+                        (userFields + addressFields).forEach { (label, value) ->
+                            var newValue by remember { mutableStateOf(value) }
+                            OutlinedTextField(
+                                value = newValue!!,
+                                onValueChange = { newValue = it },
+                                label = { Text(label, color = Color(0xff26662a)) },
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = Color(0xff26662a),
+                                    focusedLabelColor = Color(0xff26662a),
+                                    unfocusedTextColor = Color.Black,
+                                    focusedTextColor = Color.Black,
+                                )
+                            )
+                            userFields.forEach {
+                                if (it.first == label) {
+                                    when (it.first) {
+                                        "First Name" -> userInfo.firstName = newValue!!
+                                        "Last Name" -> userInfo.lastName = newValue!!
+                                        "Email" -> userInfo.email = newValue!!
+                                        "Telephone" -> userInfo.telephone = newValue!!
+                                    }
+                                }
+                            }
+                            addressFields.forEach {
+                                if (it.first == label) {
+                                    when (it.first) {
+                                        "Address Line 1" -> addressInfo.addressLine1 = newValue!!
+                                        "Address Line 2" -> addressInfo.addressLine2 = newValue!!
+                                        "Town/City" -> addressInfo.townCity = newValue!!
+                                        "County" -> addressInfo.county = newValue!!
+                                        "Country" -> addressInfo.country = newValue!!
+                                        "Post Code" -> addressInfo.postCode = newValue!!
+                                    }
                                 }
                             }
                         }
-                        addressFields.forEach {
-                            if (it.first == label) {
-                                when (it.first) {
-                                    "Address Line 1" -> addressInfo.addressLine1 = newValue!!
-                                    "Address Line 2" -> addressInfo.addressLine2 = newValue!!
-                                    "Town/City" -> addressInfo.townCity = newValue!!
-                                    "County" -> addressInfo.county = newValue!!
-                                    "Country" -> addressInfo.country = newValue!!
-                                    "Post Code" -> addressInfo.postCode = newValue!!
-                                }
+                        Button(onClick = {
+                            if(userInfo.email != originalEmail)
+                            {
+                                confirmDialog = true
                             }
+                            else
+                            {
+                                authorisationModel.updateProfile(userInfo, addressInfo, "")
+                                onDismiss()
+                            }},
+                            colors = ButtonDefaults.buttonColors(Color(0xff26662a)))
+                        {
+                            Text(text = "Save Changes", color = Color.White)
                         }
-                    }
-                    Button(onClick = {
-                        onConfirm(); authorisationModel.updateProfile(userInfo, addressInfo)},
-                        colors = ButtonDefaults.buttonColors(Color(0xff26662a)))
-                    {
-                        Text(text = "Save Changes", color = Color.White)
                     }
                 }
-            }
-        })
+            })
+    }
 }

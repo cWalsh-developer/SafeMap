@@ -3,6 +3,7 @@ package com.example.safemap.model
 
 import android.util.Log
 import com.example.safemap.model.Result.*
+import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
@@ -13,6 +14,7 @@ class UserRepository(private val auth: FirebaseAuth,
     private val firestore: FirebaseFirestore
 ) {
     private var userData: User = User()
+    private var isemailVerified = false
 
     suspend fun signUp(email: String, password: String, firstName: String, lastName: String, telephone: String,
                        addressLine1: String, addressLine2: String,
@@ -64,17 +66,42 @@ class UserRepository(private val auth: FirebaseAuth,
         return userData
     }
 
-    suspend fun updateProfile(user: User, address: UserAddresses): Result<Boolean> =
-        try
-        {
-            firestore.collection("users").document(auth.currentUser!!.uid).set(userData).await()
-            firestore.collection("users").document(auth.currentUser!!.uid).collection("addresses").add(address).await()
-            auth.currentUser!!.verifyBeforeUpdateEmail(user.email).await()
+    suspend fun updateProfile(user: User, address: UserAddresses, password: String?): Result<Boolean> {
+        return try {
+            val currentUser = auth.currentUser ?: throw Exception("No authenticated user found")
+
+
+            // Check if email needs to be changed
+            if (currentUser.email != user.email && !password.isNullOrEmpty()) {
+                val credential = EmailAuthProvider.getCredential(currentUser.email!!, password)
+                currentUser.reload().await()
+                try {
+                    currentUser.reauthenticate(credential).await() // Re-authenticate with password
+                    currentUser.verifyBeforeUpdateEmail(user.email).await()  // Send verification email
+                } catch (e: Exception) {
+                    throw Exception("Failed to send email verification: ${e.message}")
+                }
+            }
+
+            //Always update Firestore, even if email isn't changing
+            firestore.collection("users").document(currentUser.uid).set(user).await()
+            firestore.collection("users").document(currentUser.uid)
+                .collection("addresses").document(getAddressDocumentId(currentUser.uid)!!).set(address).await()
+
             Success(true)
-        }catch (e: Exception)
-        {
+        } catch (e: Exception) {
+            Log.d("Error", e.toString())
             Error(e)
         }
+    }
+
+
+
+
+    private suspend fun getAddressDocumentId(userId: String): String? {
+        val addressID = firestore.collection("users").document(userId).collection("addresses").get().await()
+        return addressID.documents[0].id
+    }
 
     suspend fun loadAddress(): UserAddresses? {
         if (auth.currentUser != null) {

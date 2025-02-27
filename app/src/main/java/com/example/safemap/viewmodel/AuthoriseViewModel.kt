@@ -27,6 +27,9 @@ class AuthoriseViewModel : ViewModel() {
     private val _addressData = MutableStateFlow<UserAddresses?>(null)
     val addressData: MutableStateFlow<UserAddresses?> = _addressData
 
+    private val _password = MutableStateFlow<String?>(null)
+    val password: MutableStateFlow<String?> = _password
+
     // Load user and address data
     fun loadUserData() {
         viewModelScope.launch {
@@ -79,11 +82,11 @@ class AuthoriseViewModel : ViewModel() {
 
     }
 
-    fun updateProfile(user: User, address: UserAddresses)
+    fun updateProfile(user: User, address: UserAddresses, password: String)
     {
         viewModelScope.launch {
             try {
-                val result = userRepository.updateProfile(user, address)
+                val result = userRepository.updateProfile(user, address, password)
                 _authorisationResultHolder.postValue(result)
             } catch (e: Exception) {
                 _authorisationResultHolder.postValue(Error(e))

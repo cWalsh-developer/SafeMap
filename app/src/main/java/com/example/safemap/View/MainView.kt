@@ -8,6 +8,7 @@ import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -49,6 +50,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -151,89 +153,99 @@ fun MainView(
 
                 },
                 actions = {
-                    SearchBar(
-                        shape = MaterialTheme.shapes.medium,
-                        modifier = Modifier.width(305.dp)
-                            .padding(start = 3.dp, end = 10.dp, top = 1.dp, bottom = 5.dp),
-                        query = text,
-                        onQueryChange = { newText ->
-                            text = newText
-                        },
-                        onSearch = {
-                            active = false
-                            geocoder.geocodeAddress(text){
-                                    result ->
-                                if(result != null)
-                                {
-                                    destinationCoordinates = LatLng(result.geometry.location.lat,
-                                        result.geometry.location.lng)
-                                }
-                                else
-                                {
-                                    Log.d("Searching:", "Geocoding failed for $text")
-                                    destinationCoordinates = null
-                                }
+                    Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically)
+                    {
+                        IconButton(onClick =
+                        {
+                            //Open the drawer
+                            scope.launch {
+                                scaffoldState.drawerState.open()
                             }
-                        },
-                        active = active,
-                        onActiveChange = { active = it
-                            pad = 700.dp
-                        },
-                        placeholder = { Text("Search", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 1.dp)) },
-                        leadingIcon = {
-                            if (active) {
-                                IconButton(onClick = { active = false }) {
-                                    Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                                }
-                            } else {
-                                Icon(imageVector = Icons.Default.Search, contentDescription = "Search")
-                            }
-                        },
-                        trailingIcon = {
-                            if (active) {
-                                IconButton(onClick = {
-                                    if (text.isNotEmpty()) {
-                                        text = ""
-                                    } else {
-                                        active = false
+
+                        })
+                        {
+                            Icon(imageVector = Icons.Default.Menu,
+                                contentDescription = "Menu",
+                                tint = Color.White, modifier = Modifier)
+                        }
+
+                        SearchBar(
+                            shape = MaterialTheme.shapes.medium,
+                            modifier = Modifier.weight(1f),
+                            query = text,
+                            onQueryChange = { newText ->
+                                text = newText
+                            },
+                            onSearch = {
+                                active = false
+                                geocoder.geocodeAddress(text){
+                                        result ->
+                                    if(result != null)
+                                    {
+                                        destinationCoordinates = LatLng(result.geometry.location.lat,
+                                            result.geometry.location.lng)
                                     }
-                                }) {
-                                    Icon(imageVector = Icons.Default.Close, contentDescription = "Clear")
+                                    else
+                                    {
+                                        Log.d("Searching:", "Geocoding failed for $text")
+                                        destinationCoordinates = null
+                                    }
                                 }
-                            }
-                        },
-                        colors = SearchBarDefaults.colors(
-                            containerColor = Color.White,
-                            inputFieldColors = TextFieldDefaults.colors(
-                                focusedTextColor = Color.Black,
-                                unfocusedTextColor = Color.LightGray,
-                                unfocusedContainerColor = Color.White,
-                                focusedContainerColor = Color.White,
-                                unfocusedIndicatorColor = Color.Transparent,
-                                focusedIndicatorColor = Color.Transparent,
-                                unfocusedLeadingIconColor = Color.Black,
-                                focusedLeadingIconColor = Color.Black,
-                                cursorColor = Color.Black,
-                            )),
-                    ) {
-                        // Search suggestions or results can go here
+                            },
+                            active = active,
+                            onActiveChange = { active = it
+                                pad = 700.dp
+                            },
+                            placeholder = { Text("Search", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 1.dp)) },
+                            leadingIcon = {
+                                if (active) {
+                                    IconButton(onClick = { active = false }) {
+                                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                                    }
+                                } else {
+                                    Icon(imageVector = Icons.Default.Search, contentDescription = "Search")
+                                }
+                            },
+                            trailingIcon = {
+                                if (active) {
+                                    IconButton(onClick = {
+                                        if (text.isNotEmpty()) {
+                                            text = ""
+                                        } else {
+                                            active = false
+                                        }
+                                    }) {
+                                        Icon(imageVector = Icons.Default.Close, contentDescription = "Clear")
+                                    }
+                                }
+                            },
+                            colors = SearchBarDefaults.colors(
+                                containerColor = Color.White,
+                                inputFieldColors = TextFieldDefaults.colors(
+                                    focusedTextColor = Color.Black,
+                                    unfocusedTextColor = Color.LightGray,
+                                    unfocusedContainerColor = Color.White,
+                                    focusedContainerColor = Color.White,
+                                    unfocusedIndicatorColor = Color.Transparent,
+                                    focusedIndicatorColor = Color.Transparent,
+                                    unfocusedLeadingIconColor = Color.Black,
+                                    focusedLeadingIconColor = Color.Black,
+                                    cursorColor = Color.Black,
+                                )),
+                        ) {
+                            // Search suggestions or results can go here
+                        }
+                        Icon(modifier = Modifier.padding(start = 8.dp)
+                            .clickable {},
+                            painter = painterResource(id = R.drawable.ic_wifi), contentDescription = "Contact", tint = Color.White)
+
                     }
-                    Icon(modifier = Modifier
-                        .padding(top = 5.dp, bottom = 5.dp)
-                        .clickable {}, painter = painterResource(id = R.drawable.ic_wifi), contentDescription = "Contact", tint = Color.White)
                 },
                 colors = TopAppBarDefaults.topAppBarColors(Color(0xff26662a)),
-                navigationIcon = { IconButton(onClick =
-                {
-                    //Open the drawer
-                    scope.launch {
-                        scaffoldState.drawerState.open()
-                    }
-
-                })
-                {
-                    Icon(imageVector = Icons.Default.Menu, contentDescription = "Menu", tint = Color.White, modifier = Modifier.padding(top = 17.dp))
-                }}
+                navigationIcon = { // Navigation Icon is handled above
+                     }
             )
         }, scaffoldState = scaffoldState,
         drawerContent = {

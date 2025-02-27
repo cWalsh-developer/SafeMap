@@ -22,18 +22,26 @@ class Directions(private val apiKey: String) {
 
     fun getWalkingDirections(origin: LatLng,
                              destination: LatLng,
+                             streetlights: List<Streetlight>,
+                             bufferedRadiusMeters: Double = 50.0,
+                             segmentLengthMeters: Double = 10.0,
                              onResult: (DirectionsResult?, List<LatLng>?) -> Unit)
     {
+        Log.d("Directions", "getWalkingDirections called - Streetlight Enabled: ${streetlights.isNotEmpty()}")
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val request: DirectionsApiRequest = DirectionsApi.newRequest(geoApiContent)
                     .origin("${origin.latitude},${origin.longitude}")
                     .destination("${destination.latitude},${destination.longitude}")
-                    .mode(TravelMode.WALKING)
+                    .mode(TravelMode.WALKING).alternatives(true)
 
                 val result: DirectionsResult = request.await()
-                val polyline = if (result.routes.isNotEmpty()) {
-                    PolylineUtils.decodePolyline(result.routes[0].overviewPolyline.encodedPath)
+                val routes = result.routes.map { it.overviewPolyline.encodedPath }
+                val bestRoutePolyline = StreetlightRepository().chooseBestRoute(routes, streetlights,
+                    bufferedRadiusMeters, segmentLengthMeters)
+                val bestRoute = result.routes.find { it.overviewPolyline.encodedPath == bestRoutePolyline }
+                val polyline = if (bestRoute != null) {
+                    PolylineUtils.decodePolyline(bestRoute.overviewPolyline.encodedPath)
                 } else {
                     emptyList()
                 }
@@ -67,4 +75,6 @@ class Directions(private val apiKey: String) {
         return "ETA ${eta.format(formatter)}"
 
     }
+
+
 }

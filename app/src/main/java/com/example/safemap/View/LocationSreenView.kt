@@ -27,6 +27,9 @@ import com.google.maps.model.DirectionsResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+const val DEFAULT_BUFFER_RADIUS = 50.0
+const val DEFAULT_SEGMENT_LENGTH = 10.0
+
 @Composable
 fun LocationScreenView(
     destinationCoordinates: LatLng?,
@@ -44,6 +47,7 @@ fun LocationScreenView(
     val userRouteLocation = LatLng(userLocation.value.latitude, userLocation.value.longitude)
 
     val streetlights by streetlightViewModel.streetlights.collectAsState()
+    val haveStreetlightsLoaded by remember {derivedStateOf { streetlights.isNotEmpty()}}
     val directions = remember { Directions(apiKey) }
     var polylinePoints by remember { mutableStateOf<List<LatLng>?>(null) }
     var directionsResult by remember { mutableStateOf<DirectionsResult?>(null) }
@@ -79,16 +83,42 @@ fun LocationScreenView(
                 snippet = "You are here",
                 icon = userLocationIcon)
 
+            val bufferRadiusMeters = DEFAULT_BUFFER_RADIUS
+            val segmentLengthMeters = DEFAULT_SEGMENT_LENGTH
+
+            LaunchedEffect(destinationCoordinates , haveStreetlightsLoaded, userLocation.value) {
+                if (destinationCoordinates != null) {
+                    if (streetlightEnabled && streetlights.isNotEmpty()) {
+                        Log.d("LocationScreenView", "Streetlight size: ${streetlights.size}")
+                        directions.getWalkingDirections(
+                            userRouteLocation,
+                            destinationCoordinates,
+                            streetlights,
+                            bufferRadiusMeters,
+                            segmentLengthMeters
+                        ) { result, polyline ->
+                            directionsResult = result
+                            polylinePoints = polyline
+                            Log.d("PolylinePoints", "Polyline Result: $polylinePoints")
+                        }
+                    } else {
+                        directions.getWalkingDirections(
+                            userRouteLocation,
+                            destinationCoordinates,
+                            emptyList(),
+                            bufferRadiusMeters,
+                            segmentLengthMeters
+                        ) { result, polyline ->
+                            directionsResult = result
+                            polylinePoints = polyline
+                            Log.d("PolylinePoints", "Polyline Result: $polylinePoints")
+                        }
+                    }
+                }
+            }
+
             if (destinationCoordinates != null) {
                 Marker(state = MarkerState(position = destinationCoordinates))
-                directions.getWalkingDirections(
-                    userRouteLocation,
-                    destinationCoordinates
-                ) { result, polyline ->
-                    directionsResult = result
-                    polylinePoints = polyline
-                    Log.d("PolylinePoints", "Polyline Result: $polylinePoints")
-                }
             }
             Polyline(points = polylinePoints ?: emptyList(), color = Color.Red, width = 7f)
 
