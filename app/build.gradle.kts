@@ -1,3 +1,6 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -17,6 +20,9 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "MY_API_KEY", "\"${getAPIkey()}\"")
+        manifestPlaceholders["API_KEY"] = getAPIkey()
     }
 
     buildTypes {
@@ -37,7 +43,15 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
+}
+
+fun getAPIkey(): String {
+    val properties = Properties()
+    val inputStream = FileInputStream("local.properties")
+    properties.load(inputStream)
+    return properties.getProperty("MY_API_KEY")
 }
 
 dependencies {
