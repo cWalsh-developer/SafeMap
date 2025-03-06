@@ -14,7 +14,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.safemap"
-        minSdk = 25
+        minSdk = 33
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -56,8 +56,6 @@ fun getAPIkey(): String {
 
 dependencies {
 
-    val compose_version = "1.6.0-alpha08"
-
     implementation(libs.ui)
     implementation(libs.ui.tooling.preview)
     implementation(libs.androidx.material)
@@ -84,7 +82,6 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
     implementation(libs.proj4j)
-    implementation(libs.androidx.navigation.compose.v274)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.runtime.livedata)
     testImplementation(libs.junit)

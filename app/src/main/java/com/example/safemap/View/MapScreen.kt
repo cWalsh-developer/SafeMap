@@ -1,19 +1,26 @@
 package com.example.safemap.View
 
 import LocationScreenView
+import LocationViewModel
 import android.Manifest
+import android.content.Intent
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.core.app.ActivityCompat
 import com.example.safemap.MainActivity
 import com.example.safemap.model.LocationUtilities
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
+import com.example.safemap.model.Directions
 import com.example.safemap.model.LocationData
-import com.example.safemap.viewmodel.LocationViewModel
+import com.example.safemap.services.LocationService
 import com.example.safemap.viewmodel.SettingsViewModel
 import com.example.safemap.viewmodel.StreetlightViewModel
 import com.google.android.gms.maps.model.LatLng
@@ -29,7 +36,8 @@ fun MapScreen(
 {
     val context = LocalContext.current
     val locationUtilities = LocationUtilities(context)
-    val location = viewmodel.location.value
+    val location by remember { mutableStateOf(viewmodel.location)}
+    val directions = remember { Directions(apiKey) }
 
     val requestPermissionPopup = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions(),
@@ -38,7 +46,8 @@ fun MapScreen(
                     && permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
                 ) {
                     //All Permissions Granted
-                    locationUtilities.requestLocationUpdates(viewModel = viewmodel)
+                    val serviceIntent = Intent(context, LocationService::class.java)
+                    ContextCompat.startForegroundService(context, serviceIntent)
                 } else {
                     val rationaleRequired = ActivityCompat.shouldShowRequestPermissionRationale(
                         context as MainActivity,
@@ -58,33 +67,36 @@ fun MapScreen(
                 }
             }
     )
-    if(location == null)
-    {
-        Text("Loading...")
-        locationUtilities.requestLocationUpdates(viewModel = viewmodel)
-    }
-    else{
-        LocationScreenView(
-            destinationCoordinates = destinationCoordinates,
-            location = location, onLocationSelected = {
-            LocationData(it.latitude, it.longitude)
-        },streetlightViewModel = streetlightViewModel, settingsViewModel = settingsViewModel,
-            apiKey = apiKey)
-    }
-    LaunchedEffect(locationUtilities.hasLocationPermission(context)) {
-        if(locationUtilities.hasLocationPermission(context))
+    LaunchedEffect(Unit) {
+        if(!locationUtilities.hasLocationPermission(context))
         {
             //Permission Granted
-            locationUtilities.requestLocationUpdates(viewModel = viewmodel)
-
-        }
-        else
-        {
             requestPermissionPopup.launch(arrayOf(
                 Manifest.permission.ACCESS_FINE_LOCATION,
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ))
+
+        }
+        else
+        {
+            viewmodel.registerReceiver(context)
+            val serviceIntent = Intent(context, LocationService::class.java)
+            ContextCompat.startForegroundService(context, serviceIntent)
         }
     }
+
+    if(location.value == null)
+    {
+        Text("Loading...")
     }
+    else{
+        LocationScreenView(
+            destinationCoordinates = destinationCoordinates,
+            location = location.value!!, onLocationSelected = {
+            LocationData(it.latitude, it.longitude)
+        },streetlightViewModel = streetlightViewModel, settingsViewModel = settingsViewModel,
+            apiKey = apiKey,
+            viewmodel = viewmodel)
+    }
+}
 

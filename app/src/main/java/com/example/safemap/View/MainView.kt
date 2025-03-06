@@ -2,6 +2,7 @@
 package com.example.safemap.View
 
 
+import LocationViewModel
 import android.os.Build
 import android.util.Log
 import androidx.activity.compose.BackHandler
@@ -17,7 +18,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -67,9 +67,7 @@ import kotlinx.coroutines.CoroutineScope
 import com.example.safemap.model.Result
 import com.example.safemap.model.StreetlightRepository
 import com.example.safemap.R
-import com.example.safemap.model.Directions
 import com.example.safemap.model.Geocoder
-import com.example.safemap.viewmodel.LocationViewModel
 import com.example.safemap.viewmodel.MainViewModel
 import com.example.safemap.viewmodel.SettingsViewModel
 import com.example.safemap.viewmodel.StreetlightViewModel
