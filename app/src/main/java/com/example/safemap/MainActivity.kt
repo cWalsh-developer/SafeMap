@@ -3,6 +3,7 @@
 package com.example.safemap
 
 import LocationScreenView
+import LocationViewModel
 import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -21,6 +22,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.Navigation
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -35,10 +37,10 @@ import com.example.safemap.ui.theme.SafeMapTheme
 import com.example.safemap.viewmodel.AuthoriseViewModel
 import com.example.safemap.model.Result
 import com.example.safemap.model.StreetlightRepository
-import com.example.safemap.viewmodel.LocationViewModel
 import com.example.safemap.viewmodel.StreetlightViewModel
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.model.DirectionsResult
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -65,7 +67,7 @@ class MainActivity : ComponentActivity() {
                         destinationCoordinates,
                         directionResult,
                         getAPIKey(),
-                        polylinePoints
+                        polylinePoints,
                     )
                 }
             }
@@ -124,7 +126,8 @@ fun NavigationManager(
                 streetlightViewModel = StreetlightViewModel(streetlightRepository = StreetlightRepository()),
                 settingsViewModel = viewModel(),
                 destinationCoordinates = destinationCoordinates,
-                apiKey = apiKey
+                apiKey = apiKey,
+                viewmodel = locationViewModel
             )
         }
         composable(Screen.LoginScreen.route)

@@ -1,40 +1,24 @@
 package com.example.safemap.model
 
-import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
-import android.os.Looper
 import androidx.core.content.ContextCompat
-import com.example.safemap.viewmodel.LocationViewModel
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationResult
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.Priority
+import com.example.safemap.services.LocationService
+
 
 class LocationUtilities(val context: Context) {
 
-    private val _fusedLocationClient: FusedLocationProviderClient
-    = LocationServices.getFusedLocationProviderClient(context)
-
-    //Suppress missing permissions error because it is handled elsewhere
-@SuppressLint("MissingPermission")
-    fun requestLocationUpdates(viewModel: LocationViewModel)
+    fun startLocationTracking()
     {
-        val locationCallback = object : LocationCallback(){
-            override fun onLocationResult(locationResult: LocationResult)
-            {
-                super.onLocationResult(locationResult)
-                locationResult.lastLocation?.let { location ->
-                    val newLocation = LocationData(location.latitude, location.longitude)
-                    viewModel.updateLocation(newLocation)
-                }
-            }
-        }
-        val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000).build()
+        val serviceIntent = Intent(context, LocationService::class.java)
+        ContextCompat.startForegroundService(context, serviceIntent)
+    }
 
-        _fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
+    fun stopLocationUpdates()
+    {
+        val serviceIntent = Intent(context, LocationService::class.java)
+        context.stopService(serviceIntent)
     }
 
     fun hasLocationPermission(context: Context): Boolean
