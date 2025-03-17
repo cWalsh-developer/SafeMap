@@ -6,7 +6,7 @@ import com.example.safemap.R
 sealed class Screen(val title: String, val route: String) {
     object LoginScreen : Screen("login","loginscreen")
     object SignUpScreen : Screen("signIn","signupscreen")
-    object MapScreen : Screen("map","mapscreen")
+    object MapScreen : Screen("map","map")
     object MainView: Screen("Main","MainView")
     object LocationScreen: Screen("Location","LocationScreen")
     object MedicalScreen: Screen("Medical","MedicalScreen")

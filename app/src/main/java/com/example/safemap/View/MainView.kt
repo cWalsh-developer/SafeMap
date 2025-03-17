@@ -113,6 +113,8 @@ fun MainView(
     }
 
     val settingsViewModel: SettingsViewModel = viewModel()
+    val streetlightRepository = StreetlightRepository()
+    val streetlightViewModel = StreetlightViewModel(streetlightRepository)
 
     val systemUIController = rememberSystemUiController()
     systemUIController.setStatusBarColor(Color.Transparent)
@@ -125,7 +127,10 @@ fun MainView(
                     .height(100.dp), backgroundColor = Color(0xff26662a)) {
                 screensInBottom.forEach {
                         item -> BottomNavigationItem(selected = currentRoute == item.bottomRoute, onClick = {
-                    navController.navigate(item.bottomRoute)
+                            if(currentRoute != item.bottomRoute)
+                            {
+                                navController.navigate(item.bottomRoute)
+                            }
                 }, icon = { Icon(contentDescription = item.bottomTitle, painter = painterResource(id = item.icon),
                     tint = Color.White) }, label = {
                     Text(text = item.bottomTitle, color = Color.White)
@@ -184,6 +189,10 @@ fun MainView(
                                     {
                                         destinationCoordinates = LatLng(result.geometry.location.lat,
                                             result.geometry.location.lng)
+                                        if(settingsViewModel.isStreetlightEnabled.value)
+                                        {
+                                            streetlightViewModel.loadStreetlights()
+                                        }
                                     }
                                     else
                                     {
@@ -284,7 +293,7 @@ fun MainView(
     )
     {
         Navigation(navController = navController, viewmodel = viewModel, pd = it, authorisationModel = authoriseViewModel, settingsViewModel = settingsViewModel,
-            destinationCoordinates, apiKey)
+            destinationCoordinates, apiKey, streetlightRepository)
     }
 }
 
@@ -308,7 +317,7 @@ fun DrawerState(selected: Boolean,
 
 @Composable
 fun Navigation(navController: NavController, viewmodel: MainViewModel, pd:PaddingValues, authorisationModel: AuthoriseViewModel, settingsViewModel: SettingsViewModel,
-               destinationCoordinates: LatLng?, apiKey: String)
+               destinationCoordinates: LatLng?, apiKey: String, streetlightRepository: StreetlightRepository)
 {
     NavHost(navController = navController as NavHostController,
         startDestination = Screen.MapScreen.route, modifier = Modifier.padding(pd)) {
@@ -330,7 +339,7 @@ fun Navigation(navController: NavController, viewmodel: MainViewModel, pd:Paddin
                 settingsViewModel = settingsViewModel,
                 viewmodel = LocationViewModel(),
                 streetlightViewModel = StreetlightViewModel(
-                    streetlightRepository = StreetlightRepository()),
+                    streetlightRepository = streetlightRepository),
                 destinationCoordinates = destinationCoordinates,
                 apiKey = apiKey
             )
@@ -355,7 +364,7 @@ fun Navigation(navController: NavController, viewmodel: MainViewModel, pd:Paddin
             MapScreen(
                 settingsViewModel = settingsViewModel,
                 viewmodel = LocationViewModel(),
-                streetlightViewModel = StreetlightViewModel(streetlightRepository = StreetlightRepository()),
+                streetlightViewModel = StreetlightViewModel(streetlightRepository = streetlightRepository),
                 destinationCoordinates = destinationCoordinates,
                 apiKey = apiKey)
         }

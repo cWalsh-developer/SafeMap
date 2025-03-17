@@ -14,7 +14,6 @@ class UserRepository(private val auth: FirebaseAuth,
     private val firestore: FirebaseFirestore
 ) {
     private var userData: User = User()
-    private var isemailVerified = false
 
     suspend fun signUp(email: String, password: String, firstName: String, lastName: String, telephone: String,
                        addressLine1: String, addressLine2: String,
@@ -31,17 +30,7 @@ class UserRepository(private val auth: FirebaseAuth,
         {
             Error(e)
         }
-
-    suspend fun signIn(email: String, password: String): Result<Boolean> =
-        try
-        {
-            auth.signInWithEmailAndPassword(email, password).await()
-            Success(true)
-        }catch (e: Exception)
-        {
-            Error(e)
-        }
-
+    
     private suspend fun saveUserToFirestore(user: User)
     {
         firestore.collection("users").document(auth.currentUser!!.uid).set(user).await()
@@ -56,6 +45,16 @@ class UserRepository(private val auth: FirebaseAuth,
             Log.d("Error", Exception.toString())
         }
     }
+
+    suspend fun signIn(email: String, password: String): Result<Boolean> =
+        try
+        {
+            auth.signInWithEmailAndPassword(email, password).await()
+            Success(true)
+        }catch (e: Exception)
+        {
+            Error(e)
+        }
 
     suspend fun loadUser(): User
     {

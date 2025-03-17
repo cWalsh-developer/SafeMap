@@ -2,6 +2,8 @@
 package com.example.safemap.viewmodel
 
 import android.util.Log
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.safemap.model.Streetlight
@@ -18,14 +20,12 @@ class StreetlightViewModel(private val streetlightRepository: StreetlightReposit
     private val _streetlights = MutableStateFlow<List<Streetlight>>(emptyList())
     val streetlights: StateFlow<List<Streetlight>> = _streetlights.asStateFlow()
 
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
-
     private val _error = MutableStateFlow<Throwable?>(null)
     val error: StateFlow<Throwable?> = _error.asStateFlow()
 
+    val isLoading: State<Boolean> = streetlightRepository.isLoading
+
     fun loadStreetlights() {
-            _isLoading.value = true
             viewModelScope.launch {
                 _error.value = null
                 try {
@@ -34,8 +34,6 @@ class StreetlightViewModel(private val streetlightRepository: StreetlightReposit
                 } catch (e: Exception) {
                     Log.e("StreetlightViewModel", "Error loading streetlights", e)
                     _error.value = e
-                } finally {
-                    _isLoading.value = false
                 }
             }
         }

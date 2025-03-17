@@ -2,14 +2,11 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import androidx.lifecycle.ViewModel
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.State
-import android.util.Log
+import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.ViewModel
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.safemap.model.LocationData
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 
 class LocationViewModel : ViewModel() {
     private val _location = mutableStateOf<LocationData?>(null)

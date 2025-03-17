@@ -1,9 +1,11 @@
 package com.example.safemap.model
 
 import android.util.Log
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
+import com.google.android.gms.maps.model.LatLng
 import com.google.gson.Gson
 import com.google.gson.JsonObject
-import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.SphericalUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -22,8 +24,13 @@ import kotlin.math.sqrt
 class StreetlightRepository {
     private val baseUrl = "https://kingston.statmap.co.uk/map/wfs.svc/customer_platform_prod_wfs"
 
+    private val _isLoading = mutableStateOf(false)
+    val isLoading: State<Boolean> = _isLoading
+
     suspend fun getStreetlights(): List<Streetlight> = withContext(Dispatchers.IO) {
-        val url = URL("$baseUrl?service=WFS&request=GetFeature&srsname=EPSG:27700&typeName=statmap:alloy_electricalassets_no_faults&outputFormat=geojson&filter=%3CFilter%3E%3CAND%3E%3CPropertyIsEqualTo%3E%3CPropertyName%3ELEAFLET_STYLE%3C/PropertyName%3E%3CLiteral%3ESTREET_LIGHT%3C/Literal%3E%3C/PropertyIsEqualTo%3E%3CPropertyIsEqualTo%3E%3CPropertyName%3EBOROUGH%3C/PropertyName%3E%3CLiteral%3ERBK%3C/Literal%3E%3C/PropertyIsEqualTo%3E%3C/AND%3E%3C/Filter%3E")
+        _isLoading.value = true
+        val url =
+            URL("$baseUrl?service=WFS&request=GetFeature&srsname=EPSG:27700&typeName=statmap:alloy_electricalassets_no_faults&outputFormat=geojson&filter=%3CFilter%3E%3CAND%3E%3CPropertyIsEqualTo%3E%3CPropertyName%3ELEAFLET_STYLE%3C/PropertyName%3E%3CLiteral%3ESTREET_LIGHT%3C/Literal%3E%3C/PropertyIsEqualTo%3E%3CPropertyIsEqualTo%3E%3CPropertyName%3EBOROUGH%3C/PropertyName%3E%3CLiteral%3ERBK%3C/Literal%3E%3C/PropertyIsEqualTo%3E%3C/AND%3E%3C/Filter%3E")
         val connection = url.openConnection() as HttpURLConnection
         connection.requestMethod = "GET"
 
@@ -37,6 +44,7 @@ class StreetlightRepository {
             emptyList()
         } finally {
             connection.disconnect()
+            _isLoading.value = false
         }
     }
 
@@ -101,28 +109,29 @@ class StreetlightRepository {
         return Pair(destCoord.y, destCoord.x)
     }
 
-    private fun calculateStreetlightDensity(routePolyline: String, streetlights: List<Streetlight>,
-                                    bufferRadiusMeters: Double = 50.0, segmentLengtheMeters: Double = 10.0): List<Pair<LatLng, Double>>
-    {
+    private fun calculateStreetlightDensity(
+        routePolyline: String, streetlights: List<Streetlight>,
+        bufferRadiusMeters: Double = 50.0, segmentLengtheMeters: Double = 10.0
+    ): List<Pair<LatLng, Double>> {
         val routePoints = PolylineUtils.decodePolyline(routePolyline)
         val segments = divideRouteIntoSegments(routePoints, segmentLengtheMeters)
         val streetlightDensity = mutableListOf<Pair<LatLng, Double>>()
 
-        for (segment in segments)
-        {
+        for (segment in segments) {
             val bufferCenter = segment.first
-            val streetlightsInRadius = streetlights.count{
-                streetlight -> isPointInCircle(LatLng(streetlight.latitude,
-                streetlight.longitude),bufferCenter, bufferRadiusMeters)
+            val streetlightsInRadius = streetlights.count { streetlight ->
+                isPointInCircle(
+                    LatLng(
+                        streetlight.latitude,
+                        streetlight.longitude
+                    ), bufferCenter, bufferRadiusMeters
+                )
             }
             val segmentLength = calculateSegmentLength(segment)
 
-            val density = if(segmentLength > 0)
-            {
+            val density = if (segmentLength > 0) {
                 streetlightsInRadius.toDouble() / segmentLength
-            }
-            else
-            {
+            } else {
                 0.0
             }
 
@@ -136,33 +145,29 @@ class StreetlightRepository {
         return streetlightDensity
     }
 
-    private fun calculateSegmentLength(segment: Pair<LatLng, LatLng>): Double
-    {
+    private fun calculateSegmentLength(segment: Pair<LatLng, LatLng>): Double {
         val segmentPoints = listOf(segment.first, segment.second)
         return SphericalUtil.computeLength(segmentPoints)
     }
 
-    private fun divideRouteIntoSegments(routePoints: List<LatLng>, segmentLengthMeters: Double): List<Pair<LatLng, LatLng>>
-    {
+    private fun divideRouteIntoSegments(
+        routePoints: List<LatLng>,
+        segmentLengthMeters: Double
+    ): List<Pair<LatLng, LatLng>> {
         val segments = mutableListOf<Pair<LatLng, LatLng>>()
-        for(i in 0 until routePoints.size - 1)
-        {
+        for (i in 0 until routePoints.size - 1) {
             val startPoint = routePoints[i]
             val endPoint = routePoints[i + 1]
             val distance = calculateDistance(startPoint, endPoint)
             val numSegments = (distance / segmentLengthMeters).toInt()
 
-            if(numSegments > 0)
-            {
-                for(j in 0 until numSegments)
-                {
-                    val fraction = (j+1).toDouble() / (numSegments).toDouble()
+            if (numSegments > 0) {
+                for (j in 0 until numSegments) {
+                    val fraction = (j + 1).toDouble() / (numSegments).toDouble()
                     val intermediatePoint = interpolatePoint(startPoint, endPoint, fraction)
                     segments.add(Pair(startPoint, intermediatePoint))
                 }
-            }
-            else
-            {
+            } else {
                 segments.add(Pair(startPoint, endPoint))
 
             }
@@ -170,14 +175,16 @@ class StreetlightRepository {
         return segments
     }
 
-    private fun isPointInCircle(point: LatLng, circleCenter: LatLng, radiusMeters: Double): Boolean
-    {
+    private fun isPointInCircle(
+        point: LatLng,
+        circleCenter: LatLng,
+        radiusMeters: Double
+    ): Boolean {
         val distance = calculateDistance(point, circleCenter)
         return distance <= radiusMeters
     }
 
-    private fun calculateDistance(point1: LatLng, point2: LatLng): Double
-    {
+    private fun calculateDistance(point1: LatLng, point2: LatLng): Double {
         val earthRadius = 6371000.0
         val lat1Rad = Math.toRadians(point1.latitude)
         val lon1Rad = Math.toRadians(point1.longitude)
@@ -196,30 +203,31 @@ class StreetlightRepository {
         return earthRadius * c
     }
 
-    private fun interpolatePoint(start: LatLng, end: LatLng, fraction: Double): LatLng
-    {
+    private fun interpolatePoint(start: LatLng, end: LatLng, fraction: Double): LatLng {
         val lat = start.latitude + (end.latitude - start.latitude) * fraction
         val lng = start.longitude + (end.longitude - start.longitude) * fraction
         return LatLng(lat, lng)
     }
 
-    fun chooseBestRoute(routes: List<String>,
-                        streetlights: List<Streetlight>,
-                        bufferRadiusMeters: Double = 50.0,
-                        segmentLengthMeters: Double = 10.0): String{
-        var bestRoute =""
+    fun chooseBestRoute(
+        routes: List<String>,
+        streetlights: List<Streetlight>,
+        bufferRadiusMeters: Double = 50.0,
+        segmentLengthMeters: Double = 10.0
+    ): String {
+        var bestRoute = ""
         var bestDensity = Double.MAX_VALUE
 
-        for(routePolyline in routes)
-        {
-            val segmentDensities = calculateStreetlightDensity(routePolyline,
+        for (routePolyline in routes) {
+            val segmentDensities = calculateStreetlightDensity(
+                routePolyline,
                 streetlights,
                 bufferRadiusMeters,
-                segmentLengthMeters)
+                segmentLengthMeters
+            )
             val routePenalty = calculateRoutePenalty(segmentDensities)
 
-            if(routePenalty < bestDensity)
-            {
+            if (routePenalty < bestDensity) {
                 bestDensity = routePenalty
                 bestRoute = routePolyline
             }
@@ -227,12 +235,10 @@ class StreetlightRepository {
         return bestRoute
     }
 
-    private fun calculateRoutePenalty(segmentDensities: List<Pair<LatLng, Double>>): Double
-    {
+    private fun calculateRoutePenalty(segmentDensities: List<Pair<LatLng, Double>>): Double {
         var totalPenalty = 0.0
 
-        for((_, density) in segmentDensities)
-        {
+        for ((_, density) in segmentDensities) {
             val k = 5.0
             val segmentPenalty = 100 * exp(-density * k)
             totalPenalty += segmentPenalty

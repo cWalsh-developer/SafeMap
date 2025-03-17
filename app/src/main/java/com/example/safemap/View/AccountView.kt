@@ -1,6 +1,5 @@
 package com.example.safemap.View
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -15,11 +14,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.safemap.model.User
 import com.example.safemap.model.UserAddresses
-import com.example.safemap.R
 import com.example.safemap.viewmodel.AuthoriseViewModel
 
 @Composable
@@ -52,7 +49,6 @@ fun AccountContent(userData: User, addressData: UserAddresses, onNavigateToMedic
     var showDialog by remember { mutableStateOf(false) }
     val pad = 20.dp
     val scrollState = rememberScrollState()
-    var dataLabel by remember { mutableStateOf("") }
     // Labels and corresponding values for user data
     val userFields = listOf(
         "First Name" to userData.firstName,

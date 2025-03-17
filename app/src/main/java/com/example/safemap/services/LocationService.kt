@@ -43,7 +43,7 @@ class LocationService : Service() {
     }
 
     private fun requestLocationUpdates() {
-        val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5000)
+        val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 3000)
             .setMinUpdateDistanceMeters(10f).build()
 
         locationCallback = object : LocationCallback() {

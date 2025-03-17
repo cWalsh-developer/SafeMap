@@ -66,7 +66,7 @@ class Directions(private val apiKey: String) {
 
     private var lastVibratedTurnIndex: Int? = null
     private var lastVibrationTime: Long = 0
-    private val vibrationCooldownMillis = 10000
+    private val vibrationCooldownMillis = 9500
 
 
     fun checkUserLocationForTurn(currentLocation: LatLng, context: Context, destination: LatLng) {

@@ -7,15 +7,24 @@ import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.safemap.model.LocationData
 import com.example.safemap.R
+import com.example.safemap.View.StreetlightLoadDialog
 import com.example.safemap.model.Directions
+import com.example.safemap.model.LocationData
 import com.example.safemap.model.LocationUtilities
 import com.example.safemap.viewmodel.SettingsViewModel
 import com.example.safemap.viewmodel.StreetlightViewModel
@@ -43,20 +52,25 @@ fun LocationScreenView(
     streetlightViewModel: StreetlightViewModel = viewModel(),
     settingsViewModel: SettingsViewModel,
     apiKey: String,
-    viewmodel : LocationViewModel
+    viewmodel: LocationViewModel
 ) {
     var userLocation by remember { mutableStateOf(LatLng(location.latitude, location.longitude)) }
     val streetlightEnabled by settingsViewModel.isStreetlightEnabled
     val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(LatLng(userLocation!!.latitude, userLocation.longitude), 12f)
+        position = CameraPosition.fromLatLngZoom(
+            LatLng(userLocation.latitude, userLocation.longitude),
+            12f
+        )
     }
     val userRouteLocation = LatLng(userLocation.latitude, userLocation.longitude)
-
+    var showDialog by remember { mutableStateOf(streetlightEnabled) }
     val streetlights by streetlightViewModel.streetlights.collectAsState()
-    val haveStreetlightsLoaded by remember {derivedStateOf { streetlights.isNotEmpty()}}
+    val haveStreetlightsLoaded by remember { derivedStateOf { streetlights.isNotEmpty() } }
     val directions = remember { Directions(apiKey) }
     var polylinePoints by remember { mutableStateOf<List<LatLng>?>(null) }
     var directionsResult by remember { mutableStateOf<DirectionsResult?>(null) }
+
+    val loading by streetlightViewModel.isLoading
 
     val context = LocalContext.current
     var streetlightIcon by remember { mutableStateOf<BitmapDescriptor?>(null) }
@@ -68,9 +82,8 @@ fun LocationScreenView(
     LaunchedEffect(Unit) {
         if (streetlightEnabled) {
             streetlightIcon = bitmapDescriptorFromPng(context, R.drawable.streetlight_image)
-            streetlightViewModel.loadStreetlights()
         }
-            userLocationIcon = bitmapDescriptorFromVector(context, R.drawable.icon_location)
+        userLocationIcon = bitmapDescriptorFromVector(context, R.drawable.icon_location)
         locationUtilities.startLocationTracking()
     }
 
@@ -84,108 +97,122 @@ fun LocationScreenView(
     val minimumZoomForStreetlights = 16.0f
     Box(modifier = Modifier.fillMaxSize())
     {
-        GoogleMap(
-            modifier = Modifier.fillMaxSize(),
-            cameraPositionState = cameraPositionState,
-            onMapClick = {
-                userLocation = LatLng(it.latitude, it.longitude)
-            },
+        if (showDialog) {
+            StreetlightLoadDialog(onDismiss = {
+                showDialog = !streetlightEnabled
+            }, loading = loading, haveStreetlightsLoaded = haveStreetlightsLoaded, onRetry = {
+                streetlightViewModel.loadStreetlights()
+            })
+        } else {
+            GoogleMap(
+                modifier = Modifier.fillMaxSize(),
+                cameraPositionState = cameraPositionState,
+                onMapClick = {
+                    userLocation = LatLng(it.latitude, it.longitude)
+                },
 
-            ) {
-            // User location marker
-            userLocation.let {
-                Marker(state = MarkerState(position = LatLng(it.latitude, it.longitude)),
-                    title = "Your Location",
-                    snippet = "You are here",
-                    icon = userLocationIcon)
-            }
-            userLocation = LatLng(location.latitude, location.longitude)
-
-            val bufferRadiusMeters = DEFAULT_BUFFER_RADIUS
-            val segmentLengthMeters = DEFAULT_SEGMENT_LENGTH
-
-            LaunchedEffect(destinationCoordinates , haveStreetlightsLoaded, userLocation) {
+                ) {
+                // User location marker
                 userLocation.let {
-                    val userLatLng = LatLng(it.latitude, it.longitude)
+                    Marker(
+                        state = MarkerState(position = LatLng(it.latitude, it.longitude)),
+                        title = "Your Location",
+                        snippet = "You are here",
+                        icon = userLocationIcon
+                    )
+                }
+                userLocation = LatLng(location.latitude, location.longitude)
+
+                val bufferRadiusMeters = DEFAULT_BUFFER_RADIUS
+                val segmentLengthMeters = DEFAULT_SEGMENT_LENGTH
+
+                LaunchedEffect(destinationCoordinates, haveStreetlightsLoaded, userLocation) {
+                    userLocation.let {
+                        val userLatLng = LatLng(it.latitude, it.longitude)
+                        if (destinationCoordinates != null) {
+                            directions.checkUserLocationForTurn(
+                                userLatLng,
+                                context,
+                                destinationCoordinates
+                            )
+                        }
+                    }
                     if (destinationCoordinates != null) {
-                        directions.checkUserLocationForTurn(userLatLng, context, destinationCoordinates)
-                    }
-                }
-                if (destinationCoordinates != null) {
-                    if (streetlightEnabled && streetlights.isNotEmpty()) {
-                        Log.d("LocationScreenView", "Streetlight size: ${streetlights.size}")
-                        directions.getWalkingDirections(
-                            userRouteLocation,
-                            destinationCoordinates,
-                            streetlights,
-                            context,
-                            bufferRadiusMeters,
-                            segmentLengthMeters,
-                        ) { result, polyline ->
-                            directionsResult = result
-                            polylinePoints = polyline
-                        }
-                    } else {
-                        directions.getWalkingDirections(
-                            userRouteLocation,
-                            destinationCoordinates,
-                            emptyList(),
-                            context,
-                            bufferRadiusMeters,
-                            segmentLengthMeters
-                        ) { result, polyline ->
-                            directionsResult = result
-                            polylinePoints = polyline
+                        if (streetlightEnabled && streetlights.isNotEmpty()) {
+                            Log.d("LocationScreenView", "Streetlight size: ${streetlights.size}")
+                            directions.getWalkingDirections(
+                                userRouteLocation,
+                                destinationCoordinates,
+                                streetlights,
+                                context,
+                                bufferRadiusMeters,
+                                segmentLengthMeters,
+                            ) { result, polyline ->
+                                directionsResult = result
+                                polylinePoints = polyline
+                            }
+                        } else {
+                            directions.getWalkingDirections(
+                                userRouteLocation,
+                                destinationCoordinates,
+                                emptyList(),
+                                context,
+                                bufferRadiusMeters,
+                                segmentLengthMeters
+                            ) { result, polyline ->
+                                directionsResult = result
+                                polylinePoints = polyline
+                            }
                         }
                     }
                 }
-            }
                 if (destinationCoordinates != null) {
                     Marker(state = MarkerState(position = destinationCoordinates))
+                    Polyline(points = polylinePoints ?: emptyList(), color = Color.Red, width = 7f)
                 }
-                Polyline(points = polylinePoints?: emptyList(), color = Color.Red, width = 7f)
 
 
+                // Update selected location callback
+                userLocation.let {
+                    onLocationSelected(LatLng(it.latitude, it.longitude))
+                }
 
-            // Update selected location callback
-            userLocation.let {
-                onLocationSelected(LatLng(it.latitude, it.longitude))
-            }
+                if (streetlightEnabled) {
+                    // Check if the zoom level is above the threshold
+                    if (cameraPositionState.position.zoom >= minimumZoomForStreetlights) {
+                        // Get visible bounds from camera state
+                        val visibleBounds =
+                            cameraPositionState.projection?.visibleRegion?.latLngBounds
 
-            if (streetlightEnabled) {
-                // Check if the zoom level is above the threshold
-                if (cameraPositionState.position.zoom >= minimumZoomForStreetlights) {
-                    // Get visible bounds from camera state
-                    val visibleBounds = cameraPositionState.projection?.visibleRegion?.latLngBounds
-
-                    // Render markers only within visible bounds
-                    visibleBounds?.let { bounds ->
-                        streetlightIcon?.let { icon ->
-                            streetlights.filter {
-                                bounds.contains(
-                                    LatLng(
-                                        it.latitude,
-                                        it.longitude
-                                    )
-                                )
-                            }
-                                .forEach { streetlight ->
-                                    Marker(
-                                        state = MarkerState(
-                                            position = LatLng(
-                                                streetlight.latitude,
-                                                streetlight.longitude
-                                            )
-                                        ),
-                                        title = streetlight.id,
-                                        snippet = "Leaflet Style ${streetlight.leafletStyle}, Borough: ${streetlight.borough}",
-                                        icon = icon
+                        // Render markers only within visible bounds
+                        visibleBounds?.let { bounds ->
+                            streetlightIcon?.let { icon ->
+                                streetlights.filter {
+                                    bounds.contains(
+                                        LatLng(
+                                            it.latitude,
+                                            it.longitude
+                                        )
                                     )
                                 }
+                                    .forEach { streetlight ->
+                                        Marker(
+                                            state = MarkerState(
+                                                position = LatLng(
+                                                    streetlight.latitude,
+                                                    streetlight.longitude
+                                                )
+                                            ),
+                                            title = streetlight.id,
+                                            snippet = "Leaflet Style ${streetlight.leafletStyle}, Borough: ${streetlight.borough}",
+                                            icon = icon
+                                        )
+                                    }
+                            }
                         }
                     }
-                }
 
+                }
             }
         }
     }
@@ -198,14 +225,22 @@ suspend fun bitmapDescriptorFromPng(context: Context, @DrawableRes id: Int): Bit
     }
 }
 
-suspend fun bitmapDescriptorFromVector(context: Context, @DrawableRes vectorResId: Int): BitmapDescriptor? {
+suspend fun bitmapDescriptorFromVector(
+    context: Context,
+    @DrawableRes vectorResId: Int
+): BitmapDescriptor? {
     return withContext(Dispatchers.IO) {
         // Retrieve the drawable from resources
         val vectorDrawable: Drawable = ContextCompat.getDrawable(context, vectorResId)
             ?: return@withContext null
 
         // Set the bounds for the drawable
-        vectorDrawable.setBounds(0, 0, vectorDrawable.intrinsicWidth, vectorDrawable.intrinsicHeight)
+        vectorDrawable.setBounds(
+            0,
+            0,
+            vectorDrawable.intrinsicWidth,
+            vectorDrawable.intrinsicHeight
+        )
 
         // Create a bitmap with the same dimensions as the drawable
         val bitmap = Bitmap.createBitmap(

@@ -13,13 +13,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.core.app.ActivityCompat
-import com.example.safemap.MainActivity
-import com.example.safemap.model.LocationUtilities
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.example.safemap.MainActivity
 import com.example.safemap.model.Directions
 import com.example.safemap.model.LocationData
+import com.example.safemap.model.LocationUtilities
 import com.example.safemap.services.LocationService
 import com.example.safemap.viewmodel.SettingsViewModel
 import com.example.safemap.viewmodel.StreetlightViewModel
@@ -32,71 +32,68 @@ fun MapScreen(
     streetlightViewModel: StreetlightViewModel,
     destinationCoordinates: LatLng?,
     apiKey: String
-)
-{
+) {
     val context = LocalContext.current
     val locationUtilities = LocationUtilities(context)
-    val location by remember { mutableStateOf(viewmodel.location)}
+    val location by remember { mutableStateOf(viewmodel.location) }
     val directions = remember { Directions(apiKey) }
 
     val requestPermissionPopup = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions(),
         onResult = { permissions ->
-                if (permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true
-                    && permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
-                ) {
-                    //All Permissions Granted
-                    val serviceIntent = Intent(context, LocationService::class.java)
-                    ContextCompat.startForegroundService(context, serviceIntent)
-                } else {
-                    val rationaleRequired = ActivityCompat.shouldShowRequestPermissionRationale(
-                        context as MainActivity,
-                        Manifest.permission.ACCESS_FINE_LOCATION,
-                    ) || ActivityCompat.shouldShowRequestPermissionRationale(
-                        context,
-                        Manifest.permission.ACCESS_COARSE_LOCATION,
-                    )
+            if (permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true
+                && permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+            ) {
+                //All Permissions Granted
+                val serviceIntent = Intent(context, LocationService::class.java)
+                ContextCompat.startForegroundService(context, serviceIntent)
+            } else {
+                val rationaleRequired = ActivityCompat.shouldShowRequestPermissionRationale(
+                    context as MainActivity,
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                ) || ActivityCompat.shouldShowRequestPermissionRationale(
+                    context,
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                )
 
-                    if (rationaleRequired) {
-                        Toast.makeText(context, "Location Permission Required", Toast.LENGTH_LONG)
-                            .show()
-                    } else {
-                        Toast.makeText(context, "Location Permission Denied", Toast.LENGTH_LONG)
-                            .show()
-                    }
+                if (rationaleRequired) {
+                    Toast.makeText(context, "Location Permission Required", Toast.LENGTH_LONG)
+                        .show()
+                } else {
+                    Toast.makeText(context, "Location Permission Denied", Toast.LENGTH_LONG)
+                        .show()
                 }
             }
+        }
     )
     LaunchedEffect(Unit) {
-        if(!locationUtilities.hasLocationPermission(context))
-        {
-            //Permission Granted
-            requestPermissionPopup.launch(arrayOf(
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ))
+        if (!locationUtilities.hasLocationPermission(context)) {
+//Permission Granted
+            requestPermissionPopup.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+            )
 
-        }
-        else
-        {
+        } else {
             viewmodel.registerReceiver(context)
             val serviceIntent = Intent(context, LocationService::class.java)
             ContextCompat.startForegroundService(context, serviceIntent)
         }
     }
 
-    if(location.value == null)
-    {
+    if (location.value == null) {
         Text("Loading...")
-    }
-    else{
+    } else {
         LocationScreenView(
             destinationCoordinates = destinationCoordinates,
             location = location.value!!, onLocationSelected = {
-            LocationData(it.latitude, it.longitude)
-        },streetlightViewModel = streetlightViewModel, settingsViewModel = settingsViewModel,
+                LocationData(it.latitude, it.longitude)
+            }, streetlightViewModel = streetlightViewModel, settingsViewModel = settingsViewModel,
             apiKey = apiKey,
-            viewmodel = viewmodel)
+            viewmodel = viewmodel
+        )
     }
 }
 

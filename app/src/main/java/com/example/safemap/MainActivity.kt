@@ -153,6 +153,4 @@ fun NavigationManager(
                 apiKey = apiKey)
             }
         }
-
-
     }

@@ -89,9 +89,11 @@ fun LoginScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(8.dp),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email,
-                imeAction = ImeAction.Next),
-            keyboardActions = KeyboardActions(onNext = {focusManager.moveFocus(FocusDirection.Down)})
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Email,
+                imeAction = ImeAction.Next
+            ),
+            keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
         )
         OutlinedTextField(
             colors = OutlinedTextFieldDefaults.colors(
@@ -104,9 +106,16 @@ fun LoginScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(8.dp),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password,
-                imeAction = ImeAction.Done),
-            keyboardActions = KeyboardActions(onDone = {authoriseViewModel.signIn(email, password)}),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Password,
+                imeAction = ImeAction.Done
+            ),
+            keyboardActions = KeyboardActions(onDone = {
+                authoriseViewModel.signIn(
+                    email,
+                    password
+                )
+            }),
             visualTransformation = PasswordVisualTransformation()
         )
         Button(
@@ -144,8 +153,10 @@ fun LoginScreen(
         is Result.Loading -> {
             CircularProgressIndicator(color = Color(0xff26662a))
         }
+
         is Result.LoggedOut -> {
         }
+
         null -> {
             if (textPressAction) {
                 Toast.makeText(context, "No Data Found", Toast.LENGTH_SHORT).show()
